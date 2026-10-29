@@ -1,0 +1,70 @@
+.page-stub {
+  max-width: 1152px;
+  margin: 40px auto;
+  padding: 32px;
+  border: 1px dashed #dc7070;
+  border-radius: 20px;
+  background: #fff7f7;
+  color: #202d27;
+}
+
+.page-stub::before {
+  content: 'У розробці';
+  display: inline-block;
+  margin-bottom: 16px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: #fee2e2;
+  color: #a52525;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.page-stub h1 {
+  margin: 0 0 24px;
+}
+
+.page-stub__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.page-stub__links a {
+  padding: 10px 16px;
+  border: 1px solid #e8baba;
+  border-radius: 10px;
+  background: #fff;
+  color: #a52525;
+  text-decoration: none;
+}
+
+.page-stub__links a:hover {
+  background: #fee2e2;
+}
+
+.page-stub__links a:focus-visible {
+  outline: 2px solid #a52525;
+  outline-offset: 3px;
+}
+
+@media (max-width: 1200px) {
+  .page-stub {
+    margin: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-stub {
+    margin: 16px;
+    padding: 24px;
+  }
+}
+
+.page-stub__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 360px));
+  gap: 24px;
+  margin: 24px 0;
+}
+
