@@ -1,16 +1,18 @@
-const restaurants = [
-  {
-    id: 'oblaka',
-    name: 'Oblaka',
-  },
-];
+import api from '../api/axios';
 
 async function getRestaurants() {
-  return restaurants;
+  const { data } = await api.get('/restaurants');
+  return data;
 }
 
 async function getRestaurantById(restaurantId) {
-  return restaurants.find((restaurant) => restaurant.id === restaurantId) ?? null;
+  try {
+    const { data } = await api.get(`/restaurants/${encodeURIComponent(restaurantId)}`);
+    return data;
+  } catch (error) {
+    if (error.response?.status === 404) return null;
+    throw error;
+  }
 }
 
 const restaurantsService = {

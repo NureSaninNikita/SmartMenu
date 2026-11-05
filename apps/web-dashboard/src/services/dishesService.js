@@ -1,38 +1,35 @@
-const featuredDish = {
-  id: 'oblaka-1',
-  restaurantId: 'oblaka',
-  restaurantName: 'Oblaka',
-  title: 'Салат зі свіжих овочів та ніжним сиром',
-  category: 'Салати',
-  description: null,
-  price: 229,
-  currency: 'UAH',
-  weight: null,
-  imageUrl: 'https://cdn-media.choiceqr.com/prod-eat-oblaka/menu/fRzFXEZ-cDWMiAc-TVErGeR.jpeg.webp',
-};
+import api from '../api/axios';
 
-async function getFeaturedDish() {
-  return featuredDish;
+function imageUrl(url) {
+  if (!url) return null;
+  return new URL(url, new URL(api.defaults.baseURL || '/', window.location.origin)).href;
 }
 
-async function getDishesByRestaurantId(restaurantId) {
-  return featuredDish.restaurantId === restaurantId
-    ? [featuredDish]
-    : [];
+async function loadDish(dishId) {
+  try {
+    const { data } = await api.get(`/dishes/${encodeURIComponent(dishId)}`);
+    return {
+      ...data,
+      imageUrl: imageUrl(data.imageUrl),
+      photos: data.photos.map(imageUrl),
+    };
+  } catch (error) {
+    if (error.response?.status === 404) return null;
+    throw error;
+  }
+}
+
+async function getFeaturedDish() {
+  return loadDish(1);
 }
 
 async function getDishById(restaurantId, dishId) {
-  return (
-    featuredDish.restaurantId === restaurantId &&
-    featuredDish.id === dishId
-  )
-    ? featuredDish
-    : null;
+  const dish = await loadDish(dishId);
+  return dish && String(dish.restaurantId) === String(restaurantId) ? dish : null;
 }
 
 const dishesService = {
   getFeaturedDish,
-  getDishesByRestaurantId,
   getDishById,
 };
 

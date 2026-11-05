@@ -1,14 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import DishCard from '../../components/DishCard/DishCard';
 import restaurantsService from '../../services/restaurantsService';
-import dishesService from '../../services/dishesService';
 
 function Restaurant() {
   const { restaurantId } = useParams();
 
   const [restaurant, setRestaurant] = useState(null);
-  const [dishes, setDishes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -19,17 +16,12 @@ function Restaurant() {
       setIsLoading(true);
       setError('');
       setRestaurant(null);
-      setDishes([]);
 
       try {
-        const [restaurantData, dishesData] = await Promise.all([
-          restaurantsService.getRestaurantById(restaurantId),
-          dishesService.getDishesByRestaurantId(restaurantId),
-        ]);
+        const restaurantData = await restaurantsService.getRestaurantById(restaurantId);
 
         if (isActive) {
           setRestaurant(restaurantData);
-          setDishes(dishesData);
         }
       } catch {
         if (isActive) {
@@ -60,18 +52,10 @@ function Restaurant() {
       ) : (
         <>
           <h1>{restaurant.name}</h1>
-
-          <h2>Страви закладу</h2>
-
-          {dishes.length > 0 ? (
-            <div className="page-stub__grid">
-              {dishes.map((dish) => (
-                <DishCard key={dish.id} dish={dish} />
-              ))}
-            </div>
-          ) : (
-            <p>У меню поки немає страв.</p>
-          )}
+          <h2>Дані закладу</h2>
+          <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+            {JSON.stringify(restaurant, null, 2)}
+          </pre>
         </>
       )}
 

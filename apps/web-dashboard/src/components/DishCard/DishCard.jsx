@@ -47,8 +47,8 @@ function DishCard({ dish }) {
             {price ?? 'Ціну не вказано'}
           </strong>
 
-          {dish.weight && (
-            <span className="dish-card__weight">{dish.weight}</span>
+          {dish.weight != null && (
+            <span className="dish-card__weight">{dish.weight} г</span>
           )}
         </div>
       </div>
