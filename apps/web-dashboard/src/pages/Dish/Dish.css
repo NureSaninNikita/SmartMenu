@@ -392,3 +392,23 @@
     padding-top: 24px;
   }
 }
+
+.dish-page__back {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #426549;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.dish-page__back:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.dish-page__back:focus-visible {
+  outline: 3px solid #27714e;
+  outline-offset: 4px;
+}
