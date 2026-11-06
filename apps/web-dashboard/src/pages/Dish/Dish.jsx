@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import dishesService from '../../services/dishesService';
 import './Dish.css';
 
@@ -10,6 +10,7 @@ function Dish() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [imageFailed, setImageFailed] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     let isActive = true;
@@ -55,7 +56,13 @@ function Dish() {
   return (
     <main className="dish-page">
       <nav className="dish-page__nav" aria-label="Навігація сторінки страви">
-        <Link to={`/restaurants/${restaurantId}`}>← До закладу</Link>
+        <button
+          className="dish-page__back"
+          type="button"
+          onClick={() => navigate(-1)}
+        >
+          ← Повернутися
+        </button>
         <Link to="/restaurants">Усі заклади</Link>
       </nav>
 
