@@ -1,7 +1,10 @@
 import api from '../api/axios';
 
-async function getRestaurants() {
-  const { data } = await api.get('/restaurants');
+async function getRestaurants(city = '') {
+  const { data } = await api.get('/restaurants', {
+    params: city ? { city } : {},
+  });
+
   return data;
 }
 
