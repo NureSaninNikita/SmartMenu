@@ -1,3 +1,5 @@
+using SmartMenu.Api.Security;
+
 namespace SmartMenu.Api.Data;
 
 public static class RestaurantStatuses
@@ -31,7 +33,7 @@ public sealed class AppUser
     public required string LastName { get; set; }
     public string? PhoneNumber { get; set; }
     public string? AvatarUrl { get; set; }
-    public string Role { get; set; } = "RegisteredUser";
+    public string Role { get; set; } = AppRoles.RegisteredUser;
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
