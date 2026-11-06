@@ -8,6 +8,26 @@ namespace SmartMenu.Api.Controllers;
 [Route("dishes")]
 public sealed class DishController(SmartMenuDbContext db) : ControllerBase
 {
+    [HttpGet("random")]
+    [ResponseCache(NoStore = true)]
+    [ProducesResponseType<DishDetailsResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<DishDetailsResponse>> GetRandom(CancellationToken cancellationToken)
+    {
+        var dishes = db.Dishes.AsNoTracking()
+            .Where(x => x.Status == DishStatuses.Available &&
+                x.Restaurant.Status == RestaurantStatuses.Active &&
+                x.Category.IsActive);
+        var count = await dishes.CountAsync(cancellationToken);
+        if (count == 0) return NotFound();
+
+        var id = await dishes.OrderBy(x => x.DishId)
+            .Skip(Random.Shared.Next(count))
+            .Select(x => x.DishId)
+            .FirstOrDefaultAsync(cancellationToken);
+        return id == 0 ? NotFound() : await GetById(id, cancellationToken);
+    }
+
     [HttpGet("{id:int}")]
     [ProducesResponseType<DishDetailsResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

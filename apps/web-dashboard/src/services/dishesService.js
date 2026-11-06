@@ -19,8 +19,8 @@ async function loadDish(dishId) {
   }
 }
 
-async function getFeaturedDish() {
-  return loadDish(1);
+async function getRandomDish() {
+  return loadDish('random');
 }
 
 async function getDishById(restaurantId, dishId) {
@@ -29,7 +29,7 @@ async function getDishById(restaurantId, dishId) {
 }
 
 const dishesService = {
-  getFeaturedDish,
+  getRandomDish,
   getDishById,
 };
 

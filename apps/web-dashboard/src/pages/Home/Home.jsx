@@ -14,7 +14,7 @@ function Home() {
 
     async function loadDish() {
       try {
-        const result = await dishesService.getFeaturedDish();
+        const result = await dishesService.getRandomDish();
 
         if (isActive) {
           setDish(result);
