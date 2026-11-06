@@ -20,6 +20,36 @@
   font-weight: 700;
 }
 
+.page-stub--functional::before {
+  display: none;
+}
+
+.test-form {
+  display: grid;
+  gap: 12px;
+  max-width: 420px;
+  margin-bottom: 20px;
+}
+
+.test-form label {
+  display: grid;
+  gap: 4px;
+}
+
+.test-form input,
+.test-form select,
+.test-form textarea {
+  width: 100%;
+}
+
+.test-form input[type='checkbox'] {
+  width: auto;
+}
+
+.test-form fieldset label {
+  display: block;
+}
+
 .page-stub h1 {
   margin: 0 0 24px;
 }

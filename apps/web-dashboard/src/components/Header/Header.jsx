@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import './Header.css';
 
-function Header() {
+function Header({ session, onLogout }) {
   return (
     <header className="header">
       <div className="header__container">
@@ -24,24 +24,18 @@ function Header() {
           </NavLink>
 
           <div className="header__auth">
-            <NavLink
-              to="/login"
-              className={({ isActive }) =>
-                isActive ? 'header__link header__link--active' : 'header__link'
-              }
-            >
-              Увійти
-            </NavLink>
-
-            <NavLink
-              to="/register"
-              className={({ isActive }) =>
-                isActive ? 'header__button header__button--active' : 'header__button'
-              }
-            >
-              Реєстрація
-              <span aria-hidden="true">↗</span>
-            </NavLink>
+            {session ? (
+              <>
+                <NavLink to="/profile" className="header__link">{session.user.firstName}</NavLink>
+                {session.user.role === 'SystemAdmin' && <NavLink to="/admin" className="header__link">Адміністрування</NavLink>}
+                <button type="button" onClick={onLogout}>Вийти</button>
+              </>
+            ) : (
+              <>
+                <NavLink to="/login" className="header__link">Увійти</NavLink>
+                <NavLink to="/register" className="header__button">Реєстрація</NavLink>
+              </>
+            )}
           </div>
         </nav>
       </div>
