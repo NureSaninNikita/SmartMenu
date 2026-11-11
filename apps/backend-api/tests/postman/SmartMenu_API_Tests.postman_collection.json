@@ -1,0 +1,479 @@
+{
+  "info": {
+    "_postman_id": "05c09ed9-9d3a-404b-9e2c-88e188022e35",
+    "name": "SmartMenu API Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "60041117",
+    "_collection_link": "https://go.postman.co/collection/60041117-05c09ed9-9d3a-404b-9e2c-88e188022e35?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Get Dishes — Search & Filter",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/restaurants/2/dishes?ingredientIds=34&ingredientIds=99999",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "restaurants",
+            "2",
+            "dishes"
+          ],
+          "query": [
+            {
+              "key": "query",
+              "value": "несуществующееблюдо12345",
+              "disabled": true
+            },
+            {
+              "key": "categoryId",
+              "value": "18",
+              "disabled": true
+            },
+            {
+              "key": "ingredientIds",
+              "value": "34"
+            },
+            {
+              "key": "ingredientIds",
+              "value": "99999"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-04 — Missing Ingredient",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "\npm.test(\"TC-04: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-04: Нет блюд с несовместимыми ингредиентами\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.items).to.be.an(\"array\");\n    pm.expect(data.items).to.have.lengthOf(0);\n    pm.expect(data.total).to.eql(0);\n});\n\npm.test(\"TC-04: Корректная пагинация\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.page).to.eql(1);\n    pm.expect(data.pageSize).to.eql(20);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/restaurants/2/dishes?ingredientIds=34&ingredientIds=99999",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "restaurants",
+            "2",
+            "dishes"
+          ],
+          "query": [
+            {
+              "key": "query",
+              "value": "несуществующееблюдо12345",
+              "disabled": true
+            },
+            {
+              "key": "categoryId",
+              "value": "18",
+              "disabled": true
+            },
+            {
+              "key": "ingredientIds",
+              "value": "34"
+            },
+            {
+              "key": "ingredientIds",
+              "value": "99999"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-05 — No Search Results",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-05: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-05: Нет результатов поиска\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.items).to.be.an(\"array\");\n    pm.expect(data.items).to.have.lengthOf(0);\n    pm.expect(data.total).to.eql(0);\n});\n\npm.test(\"TC-05: Корректная пагинация\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.page).to.eql(1);\n    pm.expect(data.pageSize).to.eql(20);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/restaurants/2/dishes?query=несуществующееблюдо12345",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "restaurants",
+            "2",
+            "dishes"
+          ],
+          "query": [
+            {
+              "key": "query",
+              "value": "несуществующееблюдо12345"
+            },
+            {
+              "key": "categoryId",
+              "value": "18",
+              "disabled": true
+            },
+            {
+              "key": "ingredientIds",
+              "value": "34",
+              "disabled": true
+            },
+            {
+              "key": "ingredientIds",
+              "value": "99999",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-01 — Case Insensitive Search",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-01: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-01: Найдено 2 блюда\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.items).to.be.an(\"array\");\n    pm.expect(data.total).to.eql(2);\n    pm.expect(data.items).to.have.lengthOf(2);\n});\n\npm.test(\"TC-01: Поиск не зависит от регистра\", function () {\n    const data = pm.response.json();\n\n    data.items.forEach(function (dish) {\n        pm.expect(dish.title.toLowerCase())\n            .to.include(\"авокадо\");\n    });\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/restaurants/2/dishes?query=авОкАдО",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "restaurants",
+            "2",
+            "dishes"
+          ],
+          "query": [
+            {
+              "key": "query",
+              "value": "авОкАдО"
+            },
+            {
+              "key": "categoryId",
+              "value": "18",
+              "disabled": true
+            },
+            {
+              "key": "ingredientIds",
+              "value": "34",
+              "disabled": true
+            },
+            {
+              "key": "ingredientIds",
+              "value": "99999",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-02 — Partial Search",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-02: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-02: Найдено 2 блюда\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.items).to.be.an(\"array\");\n    pm.expect(data.total).to.eql(2);\n    pm.expect(data.items).to.have.lengthOf(2);\n});\n\npm.test(\"TC-02: Поиск по части слова работает\", function () {\n    const data = pm.response.json();\n\n    data.items.forEach(function (dish) {\n        pm.expect(dish.title.toLowerCase())\n            .to.include(\"вокад\");\n    });\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/restaurants/2/dishes?query=вокад",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "restaurants",
+            "2",
+            "dishes"
+          ],
+          "query": [
+            {
+              "key": "query",
+              "value": "вокад"
+            },
+            {
+              "key": "categoryId",
+              "value": "18",
+              "disabled": true
+            },
+            {
+              "key": "ingredientIds",
+              "value": "34",
+              "disabled": true
+            },
+            {
+              "key": "ingredientIds",
+              "value": "99999",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-03 — Search and Category Filter",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-03: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-03: Найдены подходящие блюда\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.items).to.be.an(\"array\");\n    pm.expect(data.total).to.eql(2);\n    pm.expect(data.items).to.have.lengthOf(2);\n});\n\npm.test(\"TC-03: Поиск и категория работают вместе\", function () {\n    const data = pm.response.json();\n\n    data.items.forEach(function (dish) {\n        pm.expect(dish.title.toLowerCase())\n            .to.include(\"вокад\");\n\n        pm.expect(dish.categoryId).to.eql(18);\n    });\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/restaurants/2/dishes?query=вокад&categoryId=18",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "restaurants",
+            "2",
+            "dishes"
+          ],
+          "query": [
+            {
+              "key": "query",
+              "value": "вокад"
+            },
+            {
+              "key": "categoryId",
+              "value": "18"
+            },
+            {
+              "key": "ingredientIds",
+              "value": "34",
+              "disabled": true
+            },
+            {
+              "key": "ingredientIds",
+              "value": "99999",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-03 — Invalid Category",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-03 Negative: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-03 Negative: Нет блюд в несуществующей категории\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.items).to.be.an(\"array\");\n    pm.expect(data.items).to.have.lengthOf(0);\n    pm.expect(data.total).to.eql(0);\n});\n\npm.test(\"TC-03 Negative: Корректная пагинация\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.page).to.eql(1);\n    pm.expect(data.pageSize).to.eql(20);\n});\n\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/restaurants/2/dishes?query=вокад&categoryId=99999",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "restaurants",
+            "2",
+            "dishes"
+          ],
+          "query": [
+            {
+              "key": "query",
+              "value": "вокад"
+            },
+            {
+              "key": "categoryId",
+              "value": "99999"
+            },
+            {
+              "key": "ingredientIds",
+              "value": "34",
+              "disabled": true
+            },
+            {
+              "key": "ingredientIds",
+              "value": "99999",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-04 — Two Ingredients",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-04 Positive: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-04 Positive: Найдено 2 блюда\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.items).to.be.an(\"array\");\n    pm.expect(data.total).to.eql(2);\n    pm.expect(data.items).to.have.lengthOf(2);\n});\n\npm.test(\"TC-04 Positive: Возвращены ожидаемые блюда\", function () {\n    const data = pm.response.json();\n\n    const actualIds = data.items.map(dish => dish.id).sort();\n    const expectedIds = [141, 231].sort();\n\n    pm.expect(actualIds).to.eql(expectedIds);\n});\n\npm.test(\"TC-04 Positive: Корректная пагинация\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.page).to.eql(1);\n    pm.expect(data.pageSize).to.eql(20);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/restaurants/2/dishes?ingredientIds=34&ingredientIds=30",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "restaurants",
+            "2",
+            "dishes"
+          ],
+          "query": [
+            {
+              "key": "query",
+              "value": "вокад",
+              "disabled": true
+            },
+            {
+              "key": "categoryId",
+              "value": "99999",
+              "disabled": true
+            },
+            {
+              "key": "ingredientIds",
+              "value": "34"
+            },
+            {
+              "key": "ingredientIds",
+              "value": "30"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Restaurants",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/restaurants",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "restaurants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Dish Filters",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/restaurants/2/dish-filters",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "restaurants",
+            "2",
+            "dish-filters"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

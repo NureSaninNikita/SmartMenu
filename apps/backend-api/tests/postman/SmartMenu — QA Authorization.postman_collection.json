@@ -1,0 +1,542 @@
+{
+  "info": {
+    "_postman_id": "94476469-448f-4022-8086-f36cd111c008",
+    "name": "SmartMenu — QA Authorization",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "60041117",
+    "_collection_link": "https://go.postman.co/collection/60041117-94476469-448f-4022-8086-f36cd111c008?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "TC-03 — Admin Users — No Authorization",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-03: HTTP Status = 401\", function () {\n    pm.response.to.have.status(401);\n});\n\npm.test(\"TC-03: Unauthorized request rejected\", function () {\n    pm.expect(pm.response.code).to.not.equal(200);\n});\n\npm.test(\"TC-03: No user data returned\", function () {\n    const body = pm.response.text().trim();\n\n    pm.expect(body).to.equal(\"\");\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/users?page=1&pageSize=20",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "users"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "pageSize",
+              "value": "20"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-03: RegisteredUser — Admin Users",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-03: JWT is available\", function () {\n    const token = pm.environment.get(\"qa_user_token\");\n\n    pm.expect(token).to.be.a(\"string\").that.is.not.empty;\n});\n\npm.test(\"TC-03: HTTP Status = 403\", function () {\n    pm.response.to.have.status(403);\n});\n\npm.test(\"TC-03: Admin access denied\", function () {\n    const status = pm.response.code;\n\n    pm.expect(status).to.be.oneOf([401, 403]);\n    pm.expect(status).to.not.equal(200);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_user_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/users?page=1&pageSize=20",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "users"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "pageSize",
+              "value": "20"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-03 — RestaurantAdmin — Admin Users",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-03 RestaurantAdmin: JWT available\", function () {\n    const token = pm.environment.get(\"qa_restaurant_token\");\n\n    pm.expect(token)\n      .to.be.a(\"string\")\n      .that.is.not.empty;\n});\n\npm.test(\"TC-03 RestaurantAdmin: HTTP Status = 403\", function () {\n    pm.response.to.have.status(403);\n});\n\npm.test(\"TC-03 RestaurantAdmin: System admin access denied\", function () {\n    const status = pm.response.code;\n\n    pm.expect(status).to.not.equal(200);\n    pm.expect(status).to.be.oneOf([401, 403]);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_restaurant_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/users?page=1&pageSize=20",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "users"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "pageSize",
+              "value": "20"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-03 — RestaurantAdmin — Foreign Restaurant",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-03: RestaurantAdmin JWT available\", function () {\n    const token = pm.environment.get(\"qa_restaurant_token\");\n\n    pm.expect(token)\n      .to.be.a(\"string\")\n      .that.is.not.empty;\n});\n\npm.test(\"TC-03: Foreign restaurant admin access = 403\", function () {\n    pm.response.to.have.status(403);\n});\n\npm.test(\"TC-03: Administrative access rejected\", function () {\n    pm.expect(pm.response.code).to.not.be.oneOf([200, 201, 204]);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_restaurant_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants/2",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants",
+            "2"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "QA — Login — RegisteredUser",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"QA Login: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"QA Login: Role = RegisteredUser\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.user.role)\n      .to.eql(\"RegisteredUser\");\n\n    pm.expect(data.user.isActive)\n      .to.eql(true);\n});\n\npm.test(\"QA Login: JWT exists\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.token)\n      .to.be.a(\"string\")\n      .that.is.not.empty;\n});\n\nif (pm.response.code === 200) {\n    const data = pm.response.json();\n\n    if (\n        data.user?.role === \"RegisteredUser\" &&\n        data.user?.isActive === true &&\n        typeof data.token === \"string\" &&\n        data.token.length > 0\n    ) {\n        pm.environment.set(\"qa_user_token\", data.token);\n    }\n}\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{qa_user_email}}\",\n  \"password\": \"{{qa_user_password}}\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/auth/login",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "QA — Login — SystemAdmin",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-01 SystemAdmin: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-01 SystemAdmin: Correct role\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.user.role).to.eql(\"SystemAdmin\");\n    pm.expect(data.user.isActive).to.eql(true);\n});\n\npm.test(\"TC-01 SystemAdmin: JWT exists\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.token).to.be.a(\"string\").that.is.not.empty;\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{qa_system_email}}\",\n  \"password\": \"{{qa_system_password}}\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/auth/login",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "QA — Login — RestaurantAdmin",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"QA RestaurantAdmin: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"QA RestaurantAdmin: Correct role\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.user.role)\n      .to.eql(\"RestaurantAdmin\");\n\n    pm.expect(data.user.isActive)\n      .to.eql(true);\n});\n\npm.test(\"QA RestaurantAdmin: JWT exists\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.token)\n      .to.be.a(\"string\")\n      .that.is.not.empty;\n});\n\n// Удаляем прежний токен, чтобы не использовать устаревший\npm.environment.unset(\"qa_restaurant_token\");\n\n// Сохраняем JWT только после успешной авторизации\nif (pm.response.code === 200) {\n    const data = pm.response.json();\n\n    if (\n        data.user?.role === \"RestaurantAdmin\" &&\n        data.user?.isActive === true &&\n        typeof data.token === \"string\" &&\n        data.token.length > 0\n    ) {\n        pm.environment.set(\"qa_restaurant_token\", data.token);\n    }\n}\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{qa_restaurant_email}}\",\n  \"password\": \"{{qa_restaurant_password}}\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/auth/login",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-04 — Setup — Create Test User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-04 Setup: HTTP Status = 201\", function () {\n    pm.response.to.have.status(201);\n});\n\npm.test(\"TC-04 Setup: RegisteredUser created\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.role).to.eql(\"RegisteredUser\");\n    pm.expect(data.isActive).to.eql(true);\n    pm.expect(data.id).to.be.a(\"number\");\n});\n\npm.test(\"TC-04 Setup: Correct email\", function () {\n    const data = pm.response.json();\n    const expectedEmail =\n        pm.environment.get(\"qa_tc04_email\");\n\n    pm.expect(data.email).to.eql(expectedEmail);\n});\n\n// Сохраняем ID только после успешной регистрации\nif (pm.response.code === 201) {\n    const data = pm.response.json();\n\n    if (\n        data.role === \"RegisteredUser\" &&\n        data.isActive === true &&\n        Number.isInteger(data.id)\n    ) {\n        pm.environment.set(\"qa_tc04_id\", String(data.id));\n    }\n}\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"QA\",\n  \"lastName\": \"TC04\",\n  \"email\": \"{{qa_tc04_email}}\",\n  \"password\": \"{{qa_tc04_password}}\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/auth/register",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-04 — Login — Save Old JWT",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "let data = {};\n\ntry {\n    data = pm.response.json();\n} catch (e) {\n    data = {};\n}\n\npm.test(\"TC-04: Login HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-04: Correct test user\", function () {\n    pm.expect(data.user.id).to.eql(\n        Number(pm.environment.get(\"qa_tc04_id\"))\n    );\n\n    pm.expect(data.user.email).to.eql(\n        pm.environment.get(\"qa_tc04_email\")\n    );\n\n    pm.expect(data.user.role).to.eql(\"RegisteredUser\");\n    pm.expect(data.user.isActive).to.eql(true);\n});\n\npm.test(\"TC-04: JWT received\", function () {\n    pm.expect(data.token)\n        .to.be.a(\"string\")\n        .that.is.not.empty;\n});\n\nif (\n    pm.response.code === 200 &&\n    data.user?.id === Number(pm.environment.get(\"qa_tc04_id\")) &&\n    data.user?.role === \"RegisteredUser\" &&\n    data.user?.isActive === true &&\n    data.user?.email === pm.environment.get(\"qa_tc04_email\") &&\n    typeof data.token === \"string\" &&\n    data.token.length > 0\n) {\n    pm.environment.set(\"qa_tc04_token\", data.token);\n}\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{qa_tc04_email}}\",\n  \"password\": \"{{qa_tc04_password}}\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/auth/login",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-04 — Before Block — Check JWT",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-04: Old JWT accepted before blocking\", function () {\n    pm.response.to.have.status(200);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_tc04_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/auth/me",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "auth",
+            "me"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-04 — After Block — Old JWT Rejected",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-04: Old JWT exists\", function () {\n    const token = pm.environment.get(\"qa_tc04_token\");\n\n    pm.expect(token).to.be.a(\"string\").that.is.not.empty;\n});\n\npm.test(\"TC-04: HTTP Status = 401 after blocking\", function () {\n    pm.response.to.have.status(401);\n});\n\npm.test(\"TC-04: Blocked user access denied\", function () {\n    pm.expect(pm.response.code).to.not.equal(200);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_tc04_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/auth/me",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "auth",
+            "me"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-02 — Login — Wrong Password",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-02: HTTP Status = 401\", function () {\n    pm.response.to.have.status(401);\n});\n\npm.test(\"TC-02: Error response is valid JSON\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data).to.be.an(\"object\");\n    pm.expect(data.status).to.eql(401);\n});\n\npm.test(\"TC-02: Invalid credentials rejected\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.title).to.eql(\n        \"Неправильний email або пароль чи обліковий запис неактивний.\"\n    );\n\n    pm.expect(data).to.not.have.property(\"token\");\n    pm.expect(data).to.not.have.property(\"user\");\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{qa_user_email}}\",\n  \"password\": \"WrongPassword_123!\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/auth/login",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

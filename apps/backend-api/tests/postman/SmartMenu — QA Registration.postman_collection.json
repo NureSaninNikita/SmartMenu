@@ -1,0 +1,326 @@
+{
+  "info": {
+    "_postman_id": "53be2fdf-4e58-431c-93ab-87fb270a2e24",
+    "name": "SmartMenu — QA Registration",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "60041117",
+    "_collection_link": "https://go.postman.co/collection/60041117-53be2fdf-4e58-431c-93ab-87fb270a2e24?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "TC-04 — Registration — Invalid Email",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-04: HTTP Status = 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"TC-04: Email validation error exists\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.errors).to.have.property(\"Email\");\n    pm.expect(data.errors.Email).to.be.an(\"array\").that.is.not.empty;\n});\n\npm.test(\"TC-04: Invalid email message\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.errors.Email.join(\" \"))\n      .to.include(\"Неправильний формат email.\");\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"Тест\",\n  \"lastName\": \"Користувач\",\n  \"email\": \"testemail.com\",\n  \"password\": \"QaTest12345!\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/auth/register",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-03 — Registration — Empty First Name",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-03: HTTP Status = 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"TC-03: FirstName validation error exists\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.errors).to.have.property(\"FirstName\");\n    pm.expect(data.errors.FirstName)\n      .to.be.an(\"array\")\n      .that.is.not.empty;\n});\n\npm.test(\"TC-03: Registration rejected\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.status).to.eql(400);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"\",\n  \"lastName\": \"Користувач\",\n  \"email\": \"qa-empty-name@example.com\",\n  \"password\": \"QaTest12345!\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/auth/register",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-03: Empty Last Name",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-03: HTTP Status = 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"TC-03: LastName validation error exists\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.errors).to.have.property(\"LastName\");\n    pm.expect(data.errors.LastName)\n      .to.be.an(\"array\")\n      .that.is.not.empty;\n});\n\npm.test(\"TC-03: Registration rejected\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.status).to.eql(400);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"Тест\",\n  \"lastName\": \"\",\n  \"email\": \"qa-empty-lastname@example.com\",\n  \"password\": \"QaTest12345!\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/auth/register",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-03: Empty Email",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-03: HTTP Status = 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"TC-03: Email validation error exists\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.errors).to.have.property(\"Email\");\n    pm.expect(data.errors.Email)\n      .to.be.an(\"array\")\n      .that.is.not.empty;\n});\n\npm.test(\"TC-03: Registration rejected\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.status).to.eql(400);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"Тест\",\n  \"lastName\": \"Користувач\",\n  \"email\": \"\",\n  \"password\": \"QaTest12345!\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/auth/register",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-03: Empty Password",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-03: HTTP Status = 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"TC-03: Password validation error exists\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.errors)\n      .to.have.property(\"Password\");\n\n    pm.expect(data.errors.Password)\n      .to.be.an(\"array\")\n      .that.is.not.empty;\n});\n\npm.test(\"TC-03: Registration rejected\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.status).to.eql(400);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "\n{\n  \"firstName\": \"Тест\",\n  \"lastName\": \"Користувач\",\n  \"email\": \"qa-empty-password@example.com\",\n  \"password\": \"\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/auth/register",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "ТC-01 — Successful Registration",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-01: HTTP Status = 201\", function () {\n    pm.response.to.have.status(201);\n});\n\npm.test(\"TC-01: Response is valid JSON\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data).to.be.an(\"object\");\n});\n\npm.test(\"TC-01: Password is not exposed\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data).to.not.have.property(\"password\");\n    pm.expect(data).to.not.have.property(\"passwordHash\");\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"Тест\",\n  \"lastName\": \"Користувач\",\n  \"email\": \"yourname+smartmenuq01@gmail.com\",\n  \"password\": \"QaTest2026!AB\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/auth/register",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-02 — Duplicate Email",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-02: HTTP Status = 409\", function () {\n    pm.response.to.have.status(409);\n});\n\npm.test(\"TC-02: Duplicate email rejected\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data).to.be.an(\"object\");\n    pm.expect(data).to.not.have.property(\"id\");\n});\n\npm.test(\"TC-02: Error response exists\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data).to.satisfy(function (obj) {\n        return Boolean(\n            obj.title ||\n            obj.detail ||\n            obj.message ||\n            obj.errors\n        );\n    });\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"Тест\",\n  \"lastName\": \"Користувач\",\n  \"email\": \"yourname+smartmenuq01@gmail.com\",\n  \"password\": \"QaTest2026!AB\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/auth/register",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

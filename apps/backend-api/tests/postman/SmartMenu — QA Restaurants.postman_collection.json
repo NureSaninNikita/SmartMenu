@@ -1,0 +1,1766 @@
+{
+  "info": {
+    "_postman_id": "56519d40-c0a6-41d4-b492-d15e4191f6be",
+    "name": "SmartMenu — QA Restaurants",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "60041117",
+    "_collection_link": "https://go.postman.co/collection/60041117-56519d40-c0a6-41d4-b492-d15e4191f6be?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "TC-01 — Admin Restaurants — No Auth",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-01: HTTP Status = 401\", function () {\n    pm.response.to.have.status(401);\n});\n\npm.test(\"TC-01: Admin data not returned\", function () {\n    const body = pm.response.text();\n\n    pm.expect(body).to.not.include('\"menuUrl\"');\n    pm.expect(body).to.not.include('\"restaurantIds\"');\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-01 — Admin Restaurants — RegisteredUser",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-01: RegisteredUser HTTP Status = 403\", function () {\n    pm.response.to.have.status(403);\n});\n\npm.test(\"TC-01: Admin data not returned\", function () {\n    const body = pm.response.text().trim();\n\n    pm.expect(body).to.equal(\"\");\n});\n\npm.test(\"TC-01: Admin access denied\", function () {\n    pm.expect(pm.response.code).to.not.equal(200);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_user_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-01 — Admin Restaurants — RestaurantAdmin",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-01: RestaurantAdmin HTTP Status = 403\", function () {\n    pm.response.to.have.status(403);\n});\n\npm.test(\"TC-01: Admin data not returned\", function () {\n    const body = pm.response.text().trim();\n\n    pm.expect(body).to.equal(\"\");\n});\n\npm.test(\"TC-01: System admin access denied\", function () {\n    pm.expect(pm.response.code).to.not.equal(200);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_restaurant_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-01 — Admin Restaurants — SystemAdmin",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-01: SystemAdmin HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-01: Response is valid JSON array\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data).to.be.an(\"array\");\n});\n\npm.test(\"TC-01: Restaurant records are valid\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data).to.be.an(\"array\");\n\n    data.forEach(function (restaurant) {\n        pm.expect(restaurant).to.be.an(\"object\");\n        pm.expect(restaurant).to.have.property(\"id\");\n    });\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-02 — Restaurant — Empty Name",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-02: HTTP Status = 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"TC-02: Name validation error exists\", function () {\n    const data = pm.response.json();\n    const errors = data.errors || {};\n    const key = Object.keys(errors).find(\n        k => k.toLowerCase() === \"name\"\n    );\n\n    pm.expect(key).to.exist;\n    pm.expect(errors[key]).to.be.an(\"array\").that.is.not.empty;\n});\n\npm.test(\"TC-02: Restaurant not created\", function () {\n    pm.expect(pm.response.code).to.not.equal(201);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"\",\n  \"address\": \"вул. Тестова, 1\",\n  \"city\": \"Харків\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-02 — Restaurant — Empty Address",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-02: HTTP Status = 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"TC-02: Address validation error exists\", function () {\n    const data = pm.response.json();\n    const errors = data.errors || {};\n\n    const key = Object.keys(errors).find(\n        k => k.toLowerCase() === \"address\"\n    );\n\n    pm.expect(key).to.exist;\n    pm.expect(errors[key])\n        .to.be.an(\"array\").that.is.not.empty;\n});\n\npm.test(\"TC-02: Restaurant not created\", function () {\n    pm.expect(pm.response.code).to.not.equal(201);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"QA Test Restaurant\",\n  \"address\": \"\",\n  \"city\": \"Харків\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-02 — Restaurant — Invalid Email",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-02: HTTP Status = 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"TC-02: Email validation error exists\", function () {\n    const data = pm.response.json();\n    const errors = data.errors || {};\n\n    const key = Object.keys(errors).find(\n        k => k.toLowerCase() === \"email\"\n    );\n\n    pm.expect(key).to.exist;\n    pm.expect(errors[key])\n        .to.be.an(\"array\").that.is.not.empty;\n});\n\npm.test(\"TC-02: Restaurant creation rejected\", function () {\n    pm.expect(pm.response.code).to.not.equal(201);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"QA Test Restaurant\",\n  \"address\": \"вул. Тестова, 1\",\n  \"city\": \"Харків\",\n  \"email\": \"wrong-email\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-02 — Restaurant — Invalid Phone",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-02: HTTP Status = 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"TC-02: PhoneNumber validation error exists\", function () {\n    const data = pm.response.json();\n    const errors = data.errors || {};\n\n    const key = Object.keys(errors).find(\n        k => k.toLowerCase() === \"phonenumber\"\n    );\n\n    pm.expect(key).to.exist;\n    pm.expect(errors[key])\n        .to.be.an(\"array\").that.is.not.empty;\n});\n\npm.test(\"TC-02: Restaurant creation rejected\", function () {\n    pm.expect(pm.response.code).to.not.equal(201);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"QA Test Restaurant\",\n  \"address\": \"вул. Тестова, 1\",\n  \"city\": \"Харків\",\n  \"phoneNumber\": \"abc\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-02 — Restaurant — Invalid Latitude",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-02: HTTP Status = 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"TC-02: Latitude validation error exists\", function () {\n    const data = pm.response.json();\n    const errors = data.errors || {};\n\n    const key = Object.keys(errors).find(\n        k => k.toLowerCase() === \"latitude\"\n    );\n\n    pm.expect(key).to.exist;\n    pm.expect(errors[key])\n        .to.be.an(\"array\").that.is.not.empty;\n});\n\npm.test(\"TC-02: Restaurant creation rejected\", function () {\n    pm.expect(pm.response.code).to.not.equal(201);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"QA Test Restaurant\",\n  \"address\": \"вул. Тестова, 1\",\n  \"city\": \"Харків\",\n  \"latitude\": 91,\n  \"longitude\": 36.23\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-02 — Restaurant — Invalid Longitude",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-02: HTTP Status = 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"TC-02: Longitude validation error exists\", function () {\n    const data = pm.response.json();\n    const errors = data.errors || {};\n\n    const key = Object.keys(errors).find(\n        k => k.toLowerCase() === \"longitude\"\n    );\n\n    pm.expect(key).to.exist;\n    pm.expect(errors[key])\n        .to.be.an(\"array\").that.is.not.empty;\n});\n\npm.test(\"TC-02: Restaurant creation rejected\", function () {\n    pm.expect(pm.response.code).to.not.equal(201);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"QA Test Restaurant\",\n  \"address\": \"вул. Тестова, 1\",\n  \"city\": \"Харків\",\n  \"latitude\": 49.99,\n  \"longitude\": 181\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-02 — Restaurant — Missing Longitude",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-02: HTTP Status = 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"TC-02: Coordinate pair validation error exists\", function () {\n    const data = pm.response.json();\n    const errors = data.errors || {};\n\n    const coordinateErrors = Object.entries(errors)\n        .filter(([key]) =>\n            [\"latitude\", \"longitude\"].includes(key.toLowerCase())\n        )\n        .flatMap(([, messages]) => messages);\n\n    pm.expect(coordinateErrors)\n        .to.be.an(\"array\").that.is.not.empty;\n});\n\npm.test(\"TC-02: Restaurant creation rejected\", function () {\n    pm.expect(pm.response.code).to.equal(400);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"QA Test Restaurant\",\n  \"address\": \"вул. Тестова, 1\",\n  \"city\": \"Харків\",\n  \"latitude\": 49.99\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-02 — Restaurant — Missing Latitude",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-02: HTTP Status = 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"TC-02: Coordinate pair validation error exists\", function () {\n    const data = pm.response.json();\n    const errors = data.errors || {};\n\n    const keys = Object.keys(errors).map(\n        k => k.toLowerCase()\n    );\n\n    pm.expect(keys).to.include(\"latitude\");\n    pm.expect(keys).to.include(\"longitude\");\n});\n\npm.test(\"TC-02: Restaurant creation rejected\", function () {\n    pm.expect(pm.response.code).to.equal(400);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"QA Test Restaurant\",\n  \"address\": \"вул. Тестова, 1\",\n  \"city\": \"Харків\",\n  \"longitude\": 36.23\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-02 — Restaurant — Invalid Status",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-02: HTTP Status = 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"TC-02: Status validation error exists\", function () {\n    const data = pm.response.json();\n    const errors = data.errors || {};\n\n    const key = Object.keys(errors).find(\n        k => k.toLowerCase() === \"status\"\n    );\n\n    pm.expect(key).to.exist;\n    pm.expect(errors[key])\n        .to.be.an(\"array\").that.is.not.empty;\n});\n\npm.test(\"TC-02: Restaurant creation rejected\", function () {\n    pm.expect(pm.response.code).to.equal(400);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"QA Test Restaurant\",\n  \"address\": \"вул. Тестова, 1\",\n  \"city\": \"Харків\",\n  \"status\": \"Archived\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-02 — Restaurant — Invalid Opening Hours",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-02: HTTP Status = 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"TC-02: OpeningHoursJson validation error exists\", function () {\n    const data = pm.response.json();\n    const errors = data.errors || {};\n\n    const key = Object.keys(errors).find(\n        k => k.toLowerCase() === \"openinghoursjson\"\n    );\n\n    pm.expect(key).to.exist;\n    pm.expect(errors[key])\n        .to.be.an(\"array\").that.is.not.empty;\n});\n\npm.test(\"TC-02: Restaurant creation rejected\", function () {\n    pm.expect(pm.response.code).to.equal(400);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"QA Test Restaurant\",\n  \"address\": \"вул. Тестова, 1\",\n  \"city\": \"Харків\",\n  \"openingHoursJson\": \"not-json\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-02 — Restaurant — Opening Hours Not Object",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-02: HTTP Status = 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"TC-02: OpeningHoursJson object validation\", function () {\n    const data = pm.response.json();\n    const errors = data.errors || {};\n\n    const key = Object.keys(errors).find(\n        k => k.toLowerCase() === \"openinghoursjson\"\n    );\n\n    pm.expect(key).to.exist;\n    pm.expect(errors[key])\n        .to.be.an(\"array\").that.is.not.empty;\n});\n\npm.test(\"TC-02: Restaurant creation rejected\", function () {\n    pm.expect(pm.response.code).to.equal(400);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"QA Test Restaurant\",\n  \"address\": \"вул. Тестова, 1\",\n  \"city\": \"Харків\",\n  \"openingHoursJson\": \"[]\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-02 — Restaurant — Invalid Logo URL",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-02: HTTP Status = 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"TC-02: LogoUrl validation error exists\", function () {\n    const data = pm.response.json();\n    const errors = data.errors || {};\n\n    const key = Object.keys(errors).find(\n        k => k.toLowerCase() === \"logourl\"\n    );\n\n    pm.expect(key).to.exist;\n    pm.expect(errors[key])\n        .to.be.an(\"array\").that.is.not.empty;\n});\n\npm.test(\"TC-02: Restaurant creation rejected\", function () {\n    pm.expect(pm.response.code).to.equal(400);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"QA Test Restaurant\",\n  \"address\": \"вул. Тестова, 1\",\n  \"city\": \"Харків\",\n  \"logoUrl\": \"not-a-url\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-03 — Restaurant — Successful Creation",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-03: HTTP Status = 201\", function () {\n    pm.response.to.have.status(201);\n});\n\npm.test(\"TC-03: Restaurant created correctly\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.id).to.be.a(\"number\").above(0);\n    pm.expect(data.name)\n        .to.equal(\"QA TC03 Restaurant 20261111\");\n    pm.expect(data.city).to.equal(\"Харків\");\n});\n\npm.test(\"TC-03: Status = Pending\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.status).to.equal(\"Pending\");\n});\n\nif (pm.response.code === 201) {\n    const data = pm.response.json();\n\n    if (\n        Number.isInteger(data.id) &&\n        data.id > 0 &&\n        data.name === \"QA TC03 Restaurant 20261111\"\n    ) {\n        pm.environment.set(\n            \"qa_restaurant_id\",\n            String(data.id)\n        );\n    }\n}\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"QA TC03 Restaurant 20261111\",\n  \"address\": \"вул. Тестова, 1\",\n  \"city\": \"Харків\",\n  \"status\": \"Pending\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-15 — Restaurant — Create Preservation Test Data",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-15: Restaurant created\", function () {\n    pm.response.to.have.status(201);\n});\n\npm.test(\"TC-15: Valid test restaurant\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.id).to.be.a(\"number\").above(0);\n    pm.expect(data.name).to.equal(\n        \"QA Preservation Test 20261111\"\n    );\n    pm.expect(data.status).to.equal(\"Pending\");\n\n    pm.environment.set(\n        \"qa_preservation_restaurant_id\",\n        String(data.id)\n    );\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"QA Preservation Test 20261111\",\n  \"address\": \"вул. Тестова, 11\",\n  \"city\": \"Харків\",\n  \"status\": \"Pending\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-03 — Restaurant — Get Created Restaurant",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-03: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-03: Correct restaurant returned\", function () {\n    const data = pm.response.json();\n    const expectedId = Number(\n        pm.environment.get(\"qa_restaurant_id\")\n    );\n\n    pm.expect(data.id).to.equal(expectedId);\n    pm.expect(data.name)\n        .to.equal(\"QA TC03 Restaurant 20261111\");\n});\n\npm.test(\"TC-03: Restaurant data persisted\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.address)\n        .to.equal(\"вул. Тестова, 1\");\n\n    pm.expect(data.city).to.equal(\"Харків\");\n    pm.expect(data.status).to.equal(\"Pending\");\n});\n\npm.test(\"TC-03: Menu URL exists\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.menuUrl)\n        .to.equal(\"/restaurants/\" + data.id);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants/{{qa_restaurant_id}}",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants",
+            "{{qa_restaurant_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-04 — Restaurant — Verify Updated Data",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-04: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-04: Correct restaurant ID\", function () {\n    const data = pm.response.json();\n    const expectedId = Number(\n        pm.environment.get(\"qa_restaurant_id\")\n    );\n\n    pm.expect(data.id).to.equal(expectedId);\n});\n\npm.test(\"TC-04: Updated data persisted\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.name)\n        .to.equal(\"QA TC04 Restaurant Updated\");\n\n    pm.expect(data.description)\n        .to.equal(\"Restaurant updated during SmartMenu QA testing\");\n\n    pm.expect(data.address)\n        .to.equal(\"вул. Тестова, 25\");\n\n    pm.expect(data.city).to.equal(\"Харків\");\n});\n\npm.test(\"TC-04: Status remains Pending\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.status).to.equal(\"Pending\");\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants/{{qa_restaurant_id}}",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants",
+            "{{qa_restaurant_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-05 — Restaurant — Verify Deactivation",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-05: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-05: Restaurant still exists\", function () {\n    const data = pm.response.json();\n    const expectedId = Number(\n        pm.environment.get(\"qa_restaurant_id\")\n    );\n\n    pm.expect(data.id).to.equal(expectedId);\n\n    pm.expect(data.name)\n        .to.equal(\"QA TC04 Restaurant Updated\");\n});\n\npm.test(\"TC-05: Restaurant status = Inactive\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.status).to.equal(\"Inactive\");\n});\n\npm.test(\"TC-05: Restaurant data preserved\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.description)\n        .to.equal(\"Restaurant updated during SmartMenu QA testing\");\n\n    pm.expect(data.address)\n        .to.equal(\"вул. Тестова, 25\");\n\n    pm.expect(data.city).to.equal(\"Харків\");\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants/{{qa_restaurant_id}}",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants",
+            "{{qa_restaurant_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-09 — Restaurant — Verify Data Unchanged",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-09: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-09: Restaurant still exists\", function () {\n    const data = pm.response.json();\n    const expectedId = Number(\n        pm.environment.get(\"qa_restaurant_id\")\n    );\n\n    pm.expect(data.id).to.equal(expectedId);\n\n    pm.expect(data.name)\n        .to.equal(\"QA TC04 Restaurant Updated\");\n});\n\npm.test(\"TC-09: Restaurant status = Inactive\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.status).to.equal(\"Inactive\");\n});\n\npm.test(\"TC-09: Restaurant data preserved\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.description)\n        .to.equal(\"Restaurant updated during SmartMenu QA testing\");\n\n    pm.expect(data.address)\n        .to.equal(\"вул. Тестова, 25\");\n\n    pm.expect(data.city).to.equal(\"Харків\");\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants/{{qa_restaurant_id}}",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants",
+            "{{qa_restaurant_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-04 — Restaurant — Successful Update",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-04: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-04: Correct restaurant updated\", function () {\n    const data = pm.response.json();\n    const expectedId = Number(\n        pm.environment.get(\"qa_restaurant_id\")\n    );\n\n    pm.expect(data.id).to.equal(expectedId);\n    pm.expect(data.name)\n        .to.equal(\"QA TC04 Restaurant Updated\");\n});\n\npm.test(\"TC-04: Updated fields are correct\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.description)\n        .to.equal(\"Restaurant updated during SmartMenu QA testing\");\n\n    pm.expect(data.address)\n        .to.equal(\"вул. Тестова, 25\");\n\n    pm.expect(data.city).to.equal(\"Харків\");\n});\n\npm.test(\"TC-04: Status remains Pending\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.status).to.equal(\"Pending\");\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"QA TC04 Restaurant Updated\",\n  \"description\": \"Restaurant updated during SmartMenu QA testing\",\n  \"address\": \"вул. Тестова, 25\",\n  \"city\": \"Харків\",\n  \"status\": \"Pending\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants/{{qa_restaurant_id}}",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants",
+            "{{qa_restaurant_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-05 — Restaurant — Successful Deactivation",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-05: HTTP Status = 204\", function () {\n    pm.response.to.have.status(204);\n});\n\npm.test(\"TC-05: Response body is empty\", function () {\n    pm.expect(pm.response.text().trim()).to.equal(\"\");\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants/{{qa_restaurant_id}}",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants",
+            "{{qa_restaurant_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-05 — Restaurant — Public Access Denied",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-05: HTTP Status = 410\", function () {\n    pm.response.to.have.status(410);\n});\n\npm.test(\"TC-05: Restaurant unavailable message\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.status).to.equal(410);\n    pm.expect(data.title)\n        .to.equal(\"Заклад наразі недоступний.\");\n});\n\npm.test(\"TC-05: Restaurant data not exposed\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data).to.not.have.property(\"name\");\n    pm.expect(data).to.not.have.property(\"address\");\n    pm.expect(data).to.not.have.property(\"menuUrl\");\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/restaurants/{{qa_restaurant_id}}",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "restaurants",
+            "{{qa_restaurant_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-05 — Restaurant — Hidden From Public List",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-05: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-05: Response is JSON array\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data).to.be.an(\"array\");\n});\n\npm.test(\"TC-05: Inactive restaurant is hidden\", function () {\n    const data = pm.response.json();\n\n    const restaurantId = Number(\n        pm.environment.get(\"qa_restaurant_id\")\n    );\n\n    pm.expect(restaurantId).to.be.above(0);\n\n    const ids = data.map(r => Number(r.id));\n\n    pm.expect(ids).to.not.include(restaurantId);\n});\n\npm.test(\"TC-05: Only active restaurants returned\", function () {\n    const data = pm.response.json();\n\n    data.forEach(function (restaurant) {\n        pm.expect(restaurant.status).to.equal(\"Active\");\n    });\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/restaurants",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "restaurants"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-06 — Restaurant — Not Found",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-06: HTTP Status = 404\", function () {\n    pm.response.to.have.status(404);\n});\n\npm.test(\"TC-06: Restaurant not found\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data).to.be.an(\"object\");\n    pm.expect(data.status).to.equal(404);\n});\n\npm.test(\"TC-06: No restaurant data returned\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data).to.not.have.property(\"id\");\n    pm.expect(data).to.not.have.property(\"name\");\n    pm.expect(data).to.not.have.property(\"address\");\n    pm.expect(data).to.not.have.property(\"menuUrl\");\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants/999999999",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants",
+            "999999999"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-07 — Restaurant — RegisteredUser Cannot Update",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-07: RegisteredUser JWT exists\", function () {\n    const token = pm.environment.get(\"qa_user_token\");\n\n    pm.expect(token).to.be.a(\"string\").that.is.not.empty;\n});\n\npm.test(\"TC-07: HTTP Status = 403\", function () {\n    pm.response.to.have.status(403);\n});\n\npm.test(\"TC-07: Restaurant update denied\", function () {\n    pm.expect(pm.response.code).to.not.equal(200);\n    pm.expect(pm.response.code).to.not.equal(204);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_user_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"QA TC04 Restaurant Updated\",\n  \"description\": \"Restaurant updated during SmartMenu QA testing\",\n  \"address\": \"вул. Тестова, 25\",\n  \"city\": \"Харків\",\n  \"status\": \"Inactive\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants/{{qa_restaurant_id}}",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants",
+            "{{qa_restaurant_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-07 — Restaurant — RestaurantAdmin Cannot Update",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-07: RestaurantAdmin JWT exists\", function () {\n    const token = pm.environment.get(\"qa_restaurant_token\");\n\n    pm.expect(token).to.be.a(\"string\").that.is.not.empty;\n});\n\npm.test(\"TC-07: HTTP Status = 403\", function () {\n    pm.response.to.have.status(403);\n});\n\npm.test(\"TC-07: System-level update denied\", function () {\n    pm.expect(pm.response.code).to.not.equal(200);\n    pm.expect(pm.response.code).to.not.equal(204);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_restaurant_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"QA TC04 Restaurant Updated\",\n  \"description\": \"Restaurant updated during SmartMenu QA testing\",\n  \"address\": \"вул. Тестова, 25\",\n  \"city\": \"Харків\",\n  \"status\": \"Inactive\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants/{{qa_restaurant_id}}",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants",
+            "{{qa_restaurant_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-08 — Restaurant — RegisteredUser Cannot Deactivate",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-08: RegisteredUser JWT exists\", function () {\n    const token = pm.environment.get(\"qa_user_token\");\n\n    pm.expect(token)\n        .to.be.a(\"string\").that.is.not.empty;\n});\n\npm.test(\"TC-08: HTTP Status = 403\", function () {\n    pm.response.to.have.status(403);\n});\n\npm.test(\"TC-08: Deactivation denied\", function () {\n    pm.expect(pm.response.code).to.not.equal(200);\n    pm.expect(pm.response.code).to.not.equal(204);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_user_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants/{{qa_restaurant_id}}",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants",
+            "{{qa_restaurant_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-08 — Restaurant — RestaurantAdmin Cannot Deactivate",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-08: RestaurantAdmin JWT exists\", function () {\n    const token = pm.environment.get(\"qa_restaurant_token\");\n\n    pm.expect(token)\n        .to.be.a(\"string\").that.is.not.empty;\n});\n\npm.test(\"TC-08: HTTP Status = 403\", function () {\n    pm.response.to.have.status(403);\n});\n\npm.test(\"TC-08: System-level deactivation denied\", function () {\n    pm.expect(pm.response.code).to.not.equal(200);\n    pm.expect(pm.response.code).to.not.equal(204);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_restaurant_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants/{{qa_restaurant_id}}",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants",
+            "{{qa_restaurant_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-10 — Restaurant — Inactive Dishes Unavailable",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-10: HTTP Status = 410\", function () {\n    pm.response.to.have.status(410);\n});\n\npm.test(\"TC-10: Inactive restaurant dishes unavailable\", function () {\n    const body = pm.response.text();\n\n    pm.expect(pm.response.code).to.equal(410);\n    pm.expect(body).to.not.include('\"items\":[');\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/restaurants/{{qa_restaurant_id}}/dishes",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "restaurants",
+            "{{qa_restaurant_id}}",
+            "dishes"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-11 — Restaurant — Inactive Dish Filters Unavailable",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "\npm.test(\"TC-11: HTTP Status = 410\", function () {\n    pm.response.to.have.status(410);\n});\n\npm.test(\"TC-11: Restaurant unavailable message\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.status).to.equal(410);\n    pm.expect(data.title).to.equal(\n        \"Заклад наразі недоступний.\"\n    );\n});\n\npm.test(\"TC-11: Menu filters not exposed\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data).to.not.have.property(\"categories\");\n    pm.expect(data).to.not.have.property(\"ingredients\");\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/restaurants/{{qa_restaurant_id}}/dish-filters",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "restaurants",
+            "{{qa_restaurant_id}}",
+            "dish-filters"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-12 — Dish — Baseline Data",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-12: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-12: Dishes available\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.items).to.be.an(\"array\").that.is.not.empty;\n\n    const dish = data.items[0];\n    pm.expect(dish.id).to.be.a(\"number\");\n\n    pm.environment.set(\"qa_baseline_dish_id\", String(dish.id));\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/restaurants/2/dishes",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "restaurants",
+            "2",
+            "dishes"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-13 — Dish — Detail Baseline",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-13: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-13: Correct dish returned\", function () {\n    const data = pm.response.json();\n\n    const expectedId = Number(\n        pm.environment.get(\"qa_baseline_dish_id\")\n    );\n\n    pm.expect(Number(data.id)).to.equal(expectedId);\n});\n\n\npm.test(\"TC-13: Dish details available\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data).to.be.an(\"object\");\n    pm.expect(data).to.have.property(\"id\");\n    pm.expect(data).to.have.property(\"title\");\n});\n\nif (pm.response.code === 200) {\n    const data = pm.response.json();\n\n    pm.environment.set(\n        \"qa_baseline_dish_details\",\n        JSON.stringify(data)\n    );\n\n    console.log(\"Dish details:\", data);\n}\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/dishes/{{qa_baseline_dish_id}}",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "dishes",
+            "{{qa_baseline_dish_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-14 — Dish — Ratings and Reviews Baseline",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-14: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-14: Rating data is valid\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.averageRating)\n        .to.be.a(\"number\");\n\n    pm.expect(data.averageRating)\n        .to.be.within(0, 5);\n\n    pm.expect(data.ratingCount)\n        .to.be.a(\"number\");\n\n    pm.expect(Number.isInteger(data.ratingCount))\n        .to.equal(true);\n\n    pm.expect(data.ratingCount)\n        .to.be.at.least(0);\n});\n\npm.test(\"TC-14: Reviews array exists\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.reviews).to.be.an(\"array\");\n});\n\npm.test(\"TC-14: Rating data matches baseline\", function () {\n    const data = pm.response.json();\n\n    const baseline = JSON.parse(\n        pm.environment.get(\"qa_baseline_dish_details\")\n    );\n\n    pm.expect(data.averageRating)\n        .to.equal(baseline.averageRating);\n\n    pm.expect(data.ratingCount)\n        .to.equal(baseline.ratingCount);\n\n    pm.expect(data.reviews)\n        .to.deep.equal(baseline.reviews);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/dishes/{{qa_baseline_dish_id}}",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "dishes",
+            "{{qa_baseline_dish_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-15 — Restaurant — Verify Preservation Test Restaurant",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-15: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-15: QA Restaurant exists\", function () {\n    const data = pm.response.json();\n\n    const expectedId = Number(\n        pm.environment.get(\"qa_preservation_restaurant_id\")\n    );\n\n    pm.expect(data.id).to.equal(expectedId);\n    pm.expect(data.name).to.equal(\n        \"QA Preservation Test 20261111\"\n    );\n    pm.expect(data.status).to.equal(\"Pending\");\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{qa_system_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/admin/restaurants/{{qa_preservation_restaurant_id}}",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "admin",
+            "restaurants",
+            "{{qa_preservation_restaurant_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-14B — Dish — Existing Reviews",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-14B: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-14B: Correct dish returned\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.id).to.equal(8);\n    pm.expect(data.restaurantId).to.equal(1);\n});\n\npm.test(\"TC-14B: Rating data exists\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.averageRating)\n        .to.be.a(\"number\").within(1, 5);\n\n    pm.expect(data.ratingCount)\n        .to.be.a(\"number\").above(0);\n});\n\npm.test(\"TC-14B: Text reviews exist\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.reviews)\n        .to.be.an(\"array\").that.is.not.empty;\n});\n\nif (pm.response.code === 200) {\n    pm.environment.set(\n        \"qa_existing_reviews_baseline\",\n        pm.response.text()\n    );\n}\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/dishes/8",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "dishes",
+            "8"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-14C — Dish — Reviews Structure Validation",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"TC-14C: HTTP Status = 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"TC-14C: Correct dish returned\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.id).to.equal(8);\n    pm.expect(data.restaurantId).to.equal(1);\n    pm.expect(data.title).to.equal(\n        \"Зелений салат зі сніжним крабом\"\n    );\n});\n\npm.test(\"TC-14C: Rating summary is valid\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.averageRating)\n        .to.be.a(\"number\").within(1, 5);\n\n    pm.expect(data.ratingCount)\n        .to.be.a(\"number\");\n\n    pm.expect(Number.isInteger(data.ratingCount))\n        .to.equal(true);\n\n    pm.expect(data.ratingCount).to.be.above(0);\n});\n\npm.test(\"TC-14C: Reviews exist\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.reviews)\n        .to.be.an(\"array\").that.is.not.empty;\n\n    pm.expect(data.ratingCount)\n        .to.be.at.least(data.reviews.length);\n});\n\npm.test(\"TC-14C: Review structure is valid\", function () {\n    const data = pm.response.json();\n\n    data.reviews.forEach(function (review) {\n        pm.expect(review.id)\n            .to.be.a(\"number\").above(0);\n\n        pm.expect(review.userId)\n            .to.be.a(\"number\").above(0);\n\n        pm.expect(review.authorName)\n            .to.be.a(\"string\").that.is.not.empty;\n\n        pm.expect(review.text)\n            .to.be.a(\"string\").that.is.not.empty;\n\n        pm.expect(review.rating)\n            .to.be.a(\"number\").within(1, 5);\n\n        pm.expect(Number.isInteger(review.rating))\n            .to.equal(true);\n\n        pm.expect(review.createdAt)\n            .to.be.a(\"string\").that.is.not.empty;\n\n        pm.expect(\n            Number.isNaN(Date.parse(review.createdAt))\n        ).to.equal(false);\n    });\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://smartmenu-back.up.railway.app/dishes/8",
+          "protocol": "https",
+          "host": [
+            "smartmenu-back",
+            "up",
+            "railway",
+            "app"
+          ],
+          "path": [
+            "dishes",
+            "8"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TC-16 — Dish — Preservation Baselin",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
+    }
+  ]
+}
