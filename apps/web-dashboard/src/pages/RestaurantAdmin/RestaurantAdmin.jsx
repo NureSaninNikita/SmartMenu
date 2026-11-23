@@ -8,6 +8,7 @@ function RestaurantAdmin() {
       <nav className="page-stub__links" aria-label="Керування закладом">
         <Link to="/">На головну</Link>
         <Link to="/restaurant-admin/categories">Категорії меню</Link>
+        <Link to="/restaurant-admin/dishes">Страви та фото</Link>
         <Link to="/profile">До кабінету</Link>
       </nav>
     </main>

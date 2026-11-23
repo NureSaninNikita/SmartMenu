@@ -9,6 +9,7 @@ import Register from './pages/Register/Register';
 import Dish from './pages/Dish/Dish';
 import Restaurant from './pages/Restaurant/Restaurant';
 import RestaurantAdmin from './pages/RestaurantAdmin/RestaurantAdmin';
+import RestaurantDishes from './pages/RestaurantAdmin/RestaurantDishes';
 import MenuCategories from './pages/MenuCategories/MenuCategories';
 import Profile from './pages/Profile/Profile';
 import SystemAdmin from './pages/SystemAdmin/SystemAdmin';
@@ -50,6 +51,9 @@ function App() {
         } />
         <Route path="/restaurant-admin/categories" element={
           <ProtectedPage session={session} roles={['RestaurantAdmin']}><MenuCategories /></ProtectedPage>
+        } />
+        <Route path="/restaurant-admin/dishes" element={
+          <ProtectedPage session={session} roles={['RestaurantAdmin']}><RestaurantDishes session={session} /></ProtectedPage>
         } />
         <Route path="/profile" element={
           <ProtectedPage session={session}><Profile session={session} /></ProtectedPage>

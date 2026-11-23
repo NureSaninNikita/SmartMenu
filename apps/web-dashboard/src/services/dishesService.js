@@ -1,6 +1,6 @@
 import api from '../api/axios';
 
-function imageUrl(url) {
+export function imageUrl(url) {
   if (!url) return null;
   return new URL(url, new URL(api.defaults.baseURL || '/', window.location.origin)).href;
 }
