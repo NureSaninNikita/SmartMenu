@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import reviewService from '../../services/reviewService';
 import { apiErrorMessage } from '../../services/apiError';
+import ReviewActions from './ReviewActions';
 
 function RestaurantReviews({ restaurantId, session }) {
   const [reviews, setReviews] = useState([]);
@@ -48,10 +49,12 @@ function RestaurantReviews({ restaurantId, session }) {
     {reviews.length === 0 ? <p>Відгуків поки немає.</p> : <ul>
       {reviews.map((review) => <li key={review.id}>
         <strong>{review.authorName}</strong>{' '}
-        <time dateTime={review.createdAt}>
-          {new Date(review.createdAt).toLocaleDateString('uk-UA')}
-        </time>
+        <time dateTime={review.editedAt || review.createdAt}>
+          {new Date(review.editedAt || review.createdAt).toLocaleDateString('uk-UA')}
+        </time>{' '}
+        {review.editedAt && <span>(змінено)</span>}
         <p>{review.text}</p>
+        <ReviewActions review={review} session={session} onChanged={loadReviews} />
       </li>)}
     </ul>}
     {session ? <form onSubmit={addReview}>
