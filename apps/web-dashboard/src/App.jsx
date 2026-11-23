@@ -49,7 +49,7 @@ function App() {
           <ProtectedPage session={session} roles={['RestaurantAdmin']}><RestaurantAdmin /></ProtectedPage>
         } />
         <Route path="/restaurant-admin/categories" element={
-          <ProtectedPage session={session} roles={['RestaurantAdmin']}><MenuCategories /></ProtectedPage>
+          <ProtectedPage session={session} roles={['RestaurantAdmin']}><MenuCategories session={session} /></ProtectedPage>
         } />
         <Route path="/profile" element={
           <ProtectedPage session={session}><Profile session={session} /></ProtectedPage>
