@@ -43,7 +43,7 @@ function App() {
         <Route path="/restaurants" element={<Restaurants />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/restaurants/:restaurantId/dishes/:dishId" element={<Dish />}/>
+        <Route path="/restaurants/:restaurantId/dishes/:dishId" element={<Dish session={session} />}/>
         <Route path="/restaurants/:restaurantId" element={<Restaurant />} />
         <Route path="/restaurant-admin" element={
           <ProtectedPage session={session} roles={['RestaurantAdmin']}><RestaurantAdmin /></ProtectedPage>

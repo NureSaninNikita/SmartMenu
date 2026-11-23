@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import dishesService from '../../services/dishesService';
+import DishRating from '../../components/DishRating/DishRating';
 import './Dish.css';
 
-function Dish() {
+function Dish({ session }) {
   const { restaurantId, dishId } = useParams();
 
   const [dish, setDish] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [imageFailed, setImageFailed] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,7 +45,7 @@ function Dish() {
     return () => {
       isActive = false;
     };
-  }, [restaurantId, dishId]);
+  }, [restaurantId, dishId, reloadKey]);
 
   const price = dish?.price == null
     ? null
@@ -221,6 +223,9 @@ function Dish() {
                 <p className="dish-details__empty">Оцінок поки немає.</p>
               )}
             </div>
+
+            <DishRating dishId={dish.id} session={session}
+              onChanged={() => setReloadKey((current) => current + 1)} />
 
             {dish.reviews?.length > 0 ? (
               <ul className="dish-reviews__list">
