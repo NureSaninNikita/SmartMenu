@@ -13,15 +13,16 @@ import MenuDish from '../../components/MenuDish/MenuDish';
 import restaurantsService from '../../services/restaurantsService';
 import searchService from '../../services/searchService';
 import { apiErrorMessage } from '../../services/apiError';
+import RestaurantReviews from '../../components/Feedback/RestaurantReviews';
 import './Restaurant.css';
 
-function Restaurant() {
+function Restaurant({ session }) {
   const { restaurantId } = useParams();
 
-  return <RestaurantContent key={restaurantId} restaurantId={restaurantId} />;
+  return <RestaurantContent key={restaurantId} restaurantId={restaurantId} session={session} />;
 }
 
-function RestaurantContent({ restaurantId }) {
+function RestaurantContent({ restaurantId, session }) {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const query = searchParams.get('query') || '';
@@ -651,6 +652,7 @@ function RestaurantContent({ restaurantId }) {
             </div>
           )}
         </div>
+        <RestaurantReviews restaurantId={restaurantId} session={session} />
       </div>
     </main>
   );
