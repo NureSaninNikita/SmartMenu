@@ -9,6 +9,7 @@ function RestaurantAdmin() {
         <Link to="/">На головну</Link>
         <Link to="/restaurant-admin/categories">Категорії меню</Link>
         <Link to="/profile">До кабінету</Link>
+        <Link to="/restaurant-admin/availability">Стоп-лист страв</Link>
       </nav>
     </main>
   );
