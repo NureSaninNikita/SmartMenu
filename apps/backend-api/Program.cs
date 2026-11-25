@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SmartMenu.Api.Data;
 using SmartMenu.Api.Security;
+using SmartMenu.Api.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +37,7 @@ builder.Services.AddDbContext<SmartMenuDbContext>(options =>
         ?? throw new InvalidOperationException("ConnectionStrings:SmartMenu is required.")));
 builder.Services.AddScoped<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
 builder.Services.AddScoped<JwtTokenService>();
+builder.Services.AddSingleton<PhotoStorage>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
