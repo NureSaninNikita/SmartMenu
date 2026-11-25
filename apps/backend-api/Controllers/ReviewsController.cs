@@ -34,7 +34,7 @@ public sealed class ReviewsController(SmartMenuDbContext db) : ControllerBase
             .ThenByDescending(x => x.ReviewId)
             .Select(x => new ReviewResponse(
                 x.ReviewId, x.UserId, x.User.FirstName + " " + x.User.LastName,
-                x.Text, x.CreatedAt, null, x.DishId, x.RestaurantId))
+                x.Text, x.CreatedAt, null, x.EditedAt, x.DishId, x.RestaurantId))
             .ToListAsync(cancellationToken);
         return Ok(reviews);
     }
@@ -51,7 +51,7 @@ public sealed class ReviewsController(SmartMenuDbContext db) : ControllerBase
             .ThenByDescending(x => x.ReviewId)
             .Select(x => new ReviewResponse(
                 x.ReviewId, x.UserId, x.User.FirstName + " " + x.User.LastName,
-                x.Text, x.CreatedAt, null, x.DishId, x.RestaurantId))
+                x.Text, x.CreatedAt, null, x.EditedAt, x.DishId, x.RestaurantId))
             .ToListAsync(cancellationToken);
         return Ok(reviews);
     }
@@ -80,6 +80,46 @@ public sealed class ReviewsController(SmartMenuDbContext db) : ControllerBase
             cancellationToken);
         if (!exists) return NotFound();
         return await Create(request.Text.Trim(), null, restaurantId, cancellationToken);
+    }
+
+    [Authorize]
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult<ReviewResponse>> Update(
+        int id, ReviewTextRequest request, CancellationToken cancellationToken)
+    {
+        var review = await db.Reviews.Include(x => x.User)
+            .SingleOrDefaultAsync(x => x.ReviewId == id, cancellationToken);
+        if (review is null) return NotFound();
+        if (review.UserId != int.Parse(User.FindFirstValue("sub")!)) return Forbid();
+        if (review.Status == ReviewStatuses.Removed)
+            return Conflict(new ProblemDetails
+            {
+                Status = StatusCodes.Status409Conflict,
+                Title = "Видалений відгук не можна редагувати."
+            });
+
+        review.Text = request.Text.Trim();
+        review.EditedAt = DateTime.UtcNow;
+        review.UpdatedAt = review.EditedAt.Value;
+        await db.SaveChangesAsync(cancellationToken);
+        return Ok(await ToResponse(review, review.User, cancellationToken));
+    }
+
+    [Authorize]
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+    {
+        var review = await db.Reviews.SingleOrDefaultAsync(x =>
+            x.ReviewId == id, cancellationToken);
+        if (review is null) return NotFound();
+        if (review.UserId != int.Parse(User.FindFirstValue("sub")!)) return Forbid();
+        if (review.Status != ReviewStatuses.Removed)
+        {
+            review.Status = ReviewStatuses.Removed;
+            review.UpdatedAt = DateTime.UtcNow;
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        return NoContent();
     }
 
     private async Task<ActionResult<ReviewResponse>> Create(
@@ -120,7 +160,7 @@ public sealed class ReviewsController(SmartMenuDbContext db) : ControllerBase
         return new ReviewResponse(
             review.ReviewId, review.UserId,
             author.FirstName + " " + author.LastName,
-            review.Text, review.CreatedAt, rating,
+            review.Text, review.CreatedAt, rating, review.EditedAt,
             review.DishId, review.RestaurantId);
     }
 }

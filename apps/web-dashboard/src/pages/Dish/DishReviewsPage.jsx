@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import dishesService from '../../services/dishesService';
 import DishReviewForm from '../../components/Feedback/DishReviewForm';
+import ReviewActions from '../../components/Feedback/ReviewActions';
 import { apiErrorMessage } from '../../services/apiError';
 
 function DishReviewsPage({ session }) {
@@ -35,10 +36,12 @@ function DishReviewsPage({ session }) {
         {dish.reviews?.length > 0 ? <ul>
           {dish.reviews.map((review) => <li key={review.id}>
             <strong>{review.authorName}</strong>{' '}
-            <time dateTime={review.createdAt}>
-              {new Date(review.createdAt).toLocaleDateString('uk-UA')}
-            </time>
+            <time dateTime={review.editedAt || review.createdAt}>
+              {new Date(review.editedAt || review.createdAt).toLocaleDateString('uk-UA')}
+            </time>{' '}
+            {review.editedAt && <span>(змінено)</span>}
             <p>{review.text}</p>
+            <ReviewActions review={review} session={session} onChanged={loadDish} />
           </li>)}
         </ul> : <p>Відгуків поки немає.</p>}
       </>}

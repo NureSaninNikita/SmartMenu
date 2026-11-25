@@ -19,6 +19,15 @@ const reviewService = {
     );
     return data;
   },
+  async updateReview(reviewId, text) {
+    const { data } = await api.put(
+      `/reviews/${encodeURIComponent(reviewId)}`, { text }
+    );
+    return data;
+  },
+  async deleteReview(reviewId) {
+    await api.delete(`/reviews/${encodeURIComponent(reviewId)}`);
+  },
 };
 
 export default reviewService;
