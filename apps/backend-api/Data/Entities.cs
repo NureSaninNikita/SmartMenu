@@ -156,6 +156,7 @@ public sealed class Review
     public string Status { get; set; } = ReviewStatuses.Published;
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    public DateTime? EditedAt { get; set; }
     public int UserId { get; set; }
     public AppUser User { get; set; } = null!;
     public int? DishId { get; set; }
