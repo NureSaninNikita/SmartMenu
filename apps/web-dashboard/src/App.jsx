@@ -15,6 +15,7 @@ import Profile from './pages/Profile/Profile';
 import SystemAdmin from './pages/SystemAdmin/SystemAdmin';
 import authService from './services/authService';
 import { AUTH_CHANGE_EVENT, readSession } from './services/authSession';
+import DishAvailability from './pages/RestaurantAdmin/DishAvailability';
 
 function ProtectedPage({ session, roles, children }) {
   const location = useLocation();
@@ -60,6 +61,9 @@ function App() {
         } />
         <Route path="/admin" element={
           <ProtectedPage session={session} roles={['SystemAdmin']}><SystemAdmin currentUserId={session?.user.id} /></ProtectedPage>
+        } />
+        <Route path="/restaurant-admin/availability" element={
+          <ProtectedPage session={session} roles={['RestaurantAdmin']}><DishAvailability session={session} /></ProtectedPage>
         } />
       </Routes>
     </>

@@ -10,6 +10,7 @@ function RestaurantAdmin() {
         <Link to="/restaurant-admin/categories">Категорії меню</Link>
         <Link to="/restaurant-admin/dishes">Страви та фото</Link>
         <Link to="/profile">До кабінету</Link>
+        <Link to="/restaurant-admin/availability">Стоп-лист страв</Link>
       </nav>
     </main>
   );
