@@ -66,6 +66,7 @@ function Dish({ session }) {
           ← Повернутися
         </button>
         <Link to="/restaurants">Усі заклади</Link>
+        <Link to={`/restaurants/${restaurantId}/dishes/${dishId}/reviews`}>Відгуки про страву</Link>
       </nav>
 
       {isLoading ? (

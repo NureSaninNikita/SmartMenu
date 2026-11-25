@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import DishReviewsPage from './pages/Dish/DishReviewsPage';
 import Header from './components/Header/Header';
 import Home from './pages/Home/Home';
 import Restaurants from './pages/Restaurants/Restaurants';
@@ -41,12 +42,13 @@ function App() {
       <Header session={session} onLogout={authService.logout} />
 
       <Routes>
+        <Route path="/restaurants/:restaurantId/dishes/:dishId/reviews" element={<DishReviewsPage session={session} />} />
         <Route path="/" element={<Home />} />
         <Route path="/restaurants" element={<Restaurants />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/restaurants/:restaurantId/dishes/:dishId" element={<Dish session={session} />}/>
-        <Route path="/restaurants/:restaurantId" element={<Restaurant />} />
+        <Route path="/restaurants/:restaurantId" element={<Restaurant session={session} />} />
         <Route path="/restaurant-admin" element={
           <ProtectedPage session={session} roles={['RestaurantAdmin']}><RestaurantAdmin /></ProtectedPage>
         } />

@@ -72,7 +72,9 @@ public sealed class DishController(SmartMenuDbContext db) : ControllerBase
                 x.User.FirstName + " " + x.User.LastName,
                 x.Text,
                 x.CreatedAt,
-                null))
+                null,
+                x.DishId,
+                x.RestaurantId))
             .ToListAsync(cancellationToken);
 
         if (reviews.Count > 0)
@@ -142,4 +144,6 @@ public sealed record ReviewResponse(
     string AuthorName,
     string Text,
     DateTime CreatedAt,
-    int? Rating);
+    int? Rating,
+    int? DishId,
+    int? RestaurantId);
