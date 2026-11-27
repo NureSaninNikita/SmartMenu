@@ -474,20 +474,18 @@ fun MenuSearchScreen(
     val selectedIngredients = remember { mutableStateListOf<String>() }
     var showIngredientsSection by remember { mutableStateOf(true) }
 
-    val filteredDishes = remember(restaurantId, searchQuery, selectedCategory, selectedIngredients.toList()) {
-        MockRepository.dishes.filter { dish ->
-            val matchesRestaurant = restaurantId == null || dish.restaurantId == restaurantId
-            val notArchived = dish.status != DishStatus.ARCHIVED
-            val matchesQuery = searchQuery.isBlank() ||
-                    dish.name.contains(searchQuery.trim(), ignoreCase = true)
-            val matchesCategory = selectedCategory == "Усі" ||
-                    dish.category.equals(selectedCategory, ignoreCase = true)
-            val matchesIngredients = selectedIngredients.isEmpty() ||
-                    selectedIngredients.all { reqIng ->
-                        dish.ingredients.any { it.equals(reqIng, ignoreCase = true) }
-                    }
-            matchesRestaurant && notArchived && matchesQuery && matchesCategory && matchesIngredients
-        }
+    val filteredDishes = MockRepository.dishes.filter { dish ->
+        val matchesRestaurant = restaurantId == null || dish.restaurantId == restaurantId
+        val notArchived = dish.status != DishStatus.ARCHIVED
+        val matchesQuery = searchQuery.isBlank() ||
+                dish.name.contains(searchQuery.trim(), ignoreCase = true)
+        val matchesCategory = selectedCategory == "Усі" ||
+                dish.category.equals(selectedCategory, ignoreCase = true)
+        val matchesIngredients = selectedIngredients.isEmpty() ||
+                selectedIngredients.all { reqIng ->
+                    dish.ingredients.any { it.equals(reqIng, ignoreCase = true) }
+                }
+        matchesRestaurant && notArchived && matchesQuery && matchesCategory && matchesIngredients
     }
 
     LazyColumn(
