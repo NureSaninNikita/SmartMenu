@@ -23,6 +23,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        MockRepository.restoreAvailability(applicationContext)
         val sessionManager = SessionManager(applicationContext)
 
         setContent {
@@ -31,6 +32,9 @@ class MainActivity : ComponentActivity() {
                 var currentScreen by remember { mutableStateOf("home") }
                 var selectedRestaurantId by remember { mutableStateOf<Int?>(null) }
                 var selectedDishId by remember { mutableIntStateOf(1) }
+                val managedRestaurantId = currentSession
+                    ?.takeIf { it.role == UserRole.RESTAURANT_ADMIN }
+                    ?.managedRestaurantId
 
                 Column(modifier = Modifier.fillMaxSize()) {
                     SmartMenuTopBar(
@@ -46,7 +50,7 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
-                    if (currentSession?.email == "admin@tartufo.ua" && currentScreen != "admin_menu") {
+                    if (managedRestaurantId != null && currentScreen != "admin_menu") {
                         Button(
                             onClick = { currentScreen = "admin_menu" },
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
@@ -96,7 +100,19 @@ class MainActivity : ComponentActivity() {
                             onNavigateAllRestaurants = { currentScreen = "restaurants" },
                             onNavigateHome = { currentScreen = "home" }
                         )
-                        "admin_menu" -> AdminMenuScreen(restaurantId = 1, onBack = { currentScreen = "home" })
+                        "admin_menu" -> {
+                            if (managedRestaurantId != null) {
+                                AdminMenuScreen(
+                                    restaurantId = managedRestaurantId,
+                                    onBack = { currentScreen = "home" }
+                                )
+                            } else {
+                                Text("У вас немає доступу до керування закладом.")
+                                Button(onClick = { currentScreen = "home" }) {
+                                    Text("На головну")
+                                }
+                            }
+                        }
                         "register" -> RegisterScreen(
                             onRegisterAttempt = { fName, lName, email, pass ->
                                 sessionManager.registerNewUser(fName, lName, email, pass)

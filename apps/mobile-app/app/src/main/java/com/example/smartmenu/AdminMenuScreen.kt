@@ -15,11 +15,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+// Тимчасові перемикачі для перевірки локальних сценаріїв помилок.
+// У звичайному режимі обидва мають залишатися false.
+private const val FORCE_AVAILABILITY_ERROR = false
+private const val FORCE_DISH_SAVE_ERROR = false
 
 
 @Composable
@@ -233,24 +240,91 @@ fun CategoriesManager() {
 fun DishesManager(restaurantId: Int?) {
     var dishToEdit by remember { mutableStateOf<DishItem?>(null) }
     var isAddingNew by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+    var pendingDishId by remember(restaurantId) { mutableStateOf<Int?>(null) }
+    val availabilityErrors = remember(restaurantId) { mutableStateMapOf<Int, String>() }
     val dishes = MockRepository.dishes.filter { restaurantId == null || it.restaurantId == restaurantId }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            items(dishes) { dish ->
+        LazyColumn(
+            contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 88.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(dishes, key = { it.id }) { dish ->
+                val isUpdating = pendingDishId == dish.id
                 Card(colors = CardDefaults.cardColors(containerColor = Color.White), border = BorderStroke(1.dp, CardBorderCoral)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(dish.name, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                            Text("${dish.price} грн • ${dish.category}", fontSize = 13.sp, color = MutedText)
-                            Text("Статус: ${dish.status.label}", fontSize = 12.sp, color = if (dish.status == DishStatus.AVAILABLE) ForestGreen else CoralText)
+                    Column(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(dish.name, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                                Text("${dish.price} грн • ${dish.category}", fontSize = 13.sp, color = MutedText)
+                                Text("Статус: ${dish.status.label}", fontSize = 12.sp, color = if (dish.status == DishStatus.AVAILABLE) ForestGreen else CoralText)
+                            }
+                            Switch(
+                                checked = dish.status == DishStatus.AVAILABLE,
+                                enabled = pendingDishId == null && restaurantId != null &&
+                                        dish.restaurantId == restaurantId && dish.status != DishStatus.ARCHIVED,
+                                onCheckedChange = { isAvailable ->
+                                    if (pendingDishId == null && restaurantId != null &&
+                                        dish.restaurantId == restaurantId && dish.status != DishStatus.ARCHIVED) {
+                                        pendingDishId = dish.id
+                                        availabilityErrors.remove(dish.id)
+                                        coroutineScope.launch {
+                                            try {
+                                                delay(800) // Імітація запиту, без реального API.
+                                                if (FORCE_AVAILABILITY_ERROR) {
+                                                    availabilityErrors[dish.id] = "Не вдалося змінити доступність страви. Спробуйте ще раз."
+                                                } else {
+                                                    val currentDish = MockRepository.dishes.find {
+                                                        it.id == dish.id && it.restaurantId == restaurantId
+                                                    }
+                                                    if (currentDish == null || currentDish.status == DishStatus.ARCHIVED) {
+                                                        availabilityErrors[dish.id] = "Страва недоступна для зміни статусу."
+                                                    } else {
+                                                        // Оновлюємо лише статус і тільки після успіху.
+                                                        MockRepository.saveDish(currentDish.copy(
+                                                            status = if (isAvailable) DishStatus.AVAILABLE else DishStatus.UNAVAILABLE
+                                                        ))
+                                                    }
+                                                }
+                                            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                                                throw cancelled
+                                            } catch (error: Exception) {
+                                                availabilityErrors[dish.id] = "Не вдалося змінити доступність страви. Спробуйте ще раз."
+                                            } finally {
+                                                pendingDishId = null
+                                            }
+                                        }
+                                    }
+                                },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = Color.White,
+                                    checkedTrackColor = ForestGreen
+                                ),
+                                modifier = Modifier.semantics {
+                                    contentDescription = "Доступність страви ${dish.name}"
+                                }
+                            )
+                            IconButton(onClick = { dishToEdit = dish }, enabled = pendingDishId == null) {
+                                Text("✏️")
+                            }
                         }
-                        IconButton(onClick = { dishToEdit = dish }) {
-                            Text("✏️")
+                        if (isUpdating) {
+                            Row(
+                                modifier = Modifier.padding(top = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                CircularProgressIndicator(modifier = Modifier.size(16.dp), color = ForestGreen, strokeWidth = 2.dp)
+                                Text("Оновлення доступності...", fontSize = 12.sp, color = MutedText)
+                            }
+                        }
+                        availabilityErrors[dish.id]?.let { message ->
+                            Text(message, modifier = Modifier.padding(top = 8.dp), fontSize = 12.sp, color = MaterialTheme.colorScheme.error)
                         }
                     }
                 }
@@ -289,7 +363,6 @@ fun DishFormModal(restaurantId: Int, initialDish: DishItem?, onDismiss: () -> Un
 
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var simulateNetworkError by remember { mutableStateOf(false) }
 
     ModalBottomSheet(onDismissRequest = { if (!isLoading) onDismiss() }) {
         Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -309,13 +382,6 @@ fun DishFormModal(restaurantId: Int, initialDish: DishItem?, onDismiss: () -> Un
                 }
             }
 
-            Surface(color = CardPinkBg, shape = RoundedCornerShape(8.dp), border = BorderStroke(1.dp, CardBorderCoral)) {
-                Row(modifier = Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = simulateNetworkError, onCheckedChange = { simulateNetworkError = it })
-                    Text("Імітувати помилку мережі", fontSize = 13.sp)
-                }
-            }
-
             if (errorMessage != null) {
                 Text(errorMessage!!, color = MaterialTheme.colorScheme.error, fontSize = 14.sp, fontWeight = FontWeight.Medium)
             }
@@ -332,9 +398,9 @@ fun DishFormModal(restaurantId: Int, initialDish: DishItem?, onDismiss: () -> Un
                         errorMessage = null
                         coroutineScope.launch {
                             delay(1200) // Імітація запиту до сервера
-                            if (simulateNetworkError) {
+                            if (FORCE_DISH_SAVE_ERROR) {
                                 // Дані у формі зберігаються, користувач може спробувати знову
-                                errorMessage = "Помилка підключення до сервера. Дані збережено локально, спробуйте ще раз."
+                                errorMessage = "Не вдалося зберегти страву. Спробуйте ще раз."
                                 isLoading = false
                             } else {
                                 val newDish = initialDish?.copy(name = name.trim(), price = priceStr.toDouble(), category = category, imageUrl = imageUrl.takeIf { it.isNotBlank() })
@@ -360,5 +426,3 @@ fun DishFormModal(restaurantId: Int, initialDish: DishItem?, onDismiss: () -> Un
         }
     }
 }
-
-

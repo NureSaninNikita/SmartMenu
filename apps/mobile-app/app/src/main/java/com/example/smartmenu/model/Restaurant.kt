@@ -1,5 +1,7 @@
 package com.example.smartmenu
 
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.compose.runtime.mutableStateListOf
 
 enum class UserRole {
@@ -94,6 +96,32 @@ object MockRepository {
         DishItem(10, 4, "Тратторія Культура", "Салат Цезар з куркою гриль та беконом", "Салати", 245.0, DishStatus.AVAILABLE, "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=600", listOf("Курка", "Бекон", "Зелень", "Сир", "Яйця"), 270, 420, 28.0, 29.0, 12.0, 4.6, 15)
     )
 
+    // Зберігаємо доступність лише для початкових страв, які існують після перезапуску.
+    // Нові локальні страви поки не зберігаються, тому їхні ID можуть використовуватися повторно.
+    private val persistentDishKeys = dishes.map { availabilityKey(it) }.toSet()
+    private var availabilityPreferences: SharedPreferences? = null
+
+    private fun availabilityKey(dish: DishItem): String =
+        "dish_${dish.restaurantId}_${dish.id}"
+
+    fun restoreAvailability(context: Context) {
+        if (availabilityPreferences != null) return
+        val preferences = context.applicationContext.getSharedPreferences(
+            "smartmenu_dish_availability", Context.MODE_PRIVATE
+        )
+        for (index in dishes.indices) {
+            val dish = dishes[index]
+            if (dish.status == DishStatus.ARCHIVED) continue
+            val status = when (preferences.getString(availabilityKey(dish), null)) {
+                DishStatus.AVAILABLE.name -> DishStatus.AVAILABLE
+                DishStatus.UNAVAILABLE.name -> DishStatus.UNAVAILABLE
+                else -> continue
+            }
+            if (status != dish.status) dishes[index] = dish.copy(status = status)
+        }
+        availabilityPreferences = preferences
+    }
+
     val reviews = mutableStateListOf(
         ReviewItem(1, 1, "Дмитро Шевченко", "Відчувається увага до деталей. Овочі дуже свіжі, сир ніжний. Обов'язково повернуся за цією стравою.", 5, 94, "2 дні тому", 1700000400L),
         ReviewItem(2, 1, "Артем Мороз", "Приємно здивувала подача та баланс заправки. Наступного разу візьму знову.", 5, 86, "5 днів тому", 1700000300L),
@@ -112,7 +140,19 @@ object MockRepository {
 
     fun saveDish(dish: DishItem) {
         val index = dishes.indexOfFirst { it.id == dish.id }
-        if (index >= 0) dishes[index] = dish else dishes.add(dish)
+        if (index >= 0) {
+            val previous = dishes[index]
+            val key = availabilityKey(dish)
+            if (previous.restaurantId == dish.restaurantId && previous.status != dish.status &&
+                key in persistentDishKeys &&
+                (dish.status == DishStatus.AVAILABLE || dish.status == DishStatus.UNAVAILABLE)
+            ) {
+                availabilityPreferences?.edit()?.putString(key, dish.status.name)?.apply()
+            }
+            dishes[index] = dish
+        } else {
+            dishes.add(dish)
+        }
     }
 
     fun saveReview(review: ReviewItem) {
