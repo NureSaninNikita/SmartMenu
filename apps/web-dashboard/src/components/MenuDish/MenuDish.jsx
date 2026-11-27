@@ -26,38 +26,46 @@ function MenuDish({ dish }) {
           <img
             className="menu-dish__image"
             src={dish.imageUrl}
-            alt=""
+            alt={dish.title}
             loading="lazy"
             onError={() => setFailedImage(dish.imageUrl)}
           />
         ) : (
-          <span className="menu-dish__placeholder" aria-label="Фото відсутнє">
-            <span aria-hidden="true">🍽️</span>
-          </span>
+          <span className="menu-dish__placeholder">Фото відсутнє</span>
+        )}
+
+        {isUnavailable && (
+          <span className="menu-dish__unavailable-badge">Недоступно</span>
         )}
       </div>
 
       <div className="menu-dish__content">
+        {dish.category && (
+          <span className="menu-dish__category">{dish.category}</span>
+        )}
+
         <h3 className="menu-dish__title">{dish.title}</h3>
 
         {dish.description?.trim() && (
           <p className="menu-dish__description">{dish.description}</p>
         )}
 
-        {dish.weight != null && (
-          <span className="menu-dish__weight">{dish.weight} г</span>
-        )}
+        <div className="menu-dish__bottom">
+          <div className="menu-dish__price-wrap">
+            <strong className="menu-dish__price">{price}</strong>
+            {dish.weight != null && (
+              <span className="menu-dish__weight">{dish.weight} г</span>
+            )}
+          </div>
 
-        {isUnavailable && (
-          <span className="menu-dish__status">
-            Тимчасово недоступна
+          <span
+            className={`menu-dish__status${
+              isUnavailable ? ' menu-dish__status--unavailable' : ' menu-dish__status--available'
+            }`}
+          >
+            {isUnavailable ? 'Тимчасово недоступна' : 'Доступно зараз'}
           </span>
-        )}
-      </div>
-
-      <div className="menu-dish__aside">
-        <strong className="menu-dish__price">{price}</strong>
-        <span className="menu-dish__arrow" aria-hidden="true">↗</span>
+        </div>
       </div>
     </Link>
   );

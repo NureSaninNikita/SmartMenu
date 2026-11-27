@@ -1,13 +1,32 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { SmartMenuMark } from '../../components/Header/Header';
 import authService from '../../services/authService';
 import { apiErrorMessage } from '../../services/apiError';
 import './Register.css';
 
-function Register() {
+function EyeIcon({ visible }) {
+  return visible ? (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 3l18 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M10.58 10.58A2 2 0 0013.42 13.42" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M9.88 5.09A10.9 10.9 0 0112 4.9c5 0 9.27 3.11 11 7.5a11.8 11.8 0 01-4.08 5.29" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M6.61 6.61A11.8 11.8 0 001 12.4c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  ) : (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M1 12s4-7.5 11-7.5S23 12 23 12s-4 7.5-11 7.5S1 12 1 12z" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  );
+}
+
+function Register({ isModal = false, onClose, onSwitchToLogin }) {
+  const navigate = useNavigate();
   const [values, setValues] = useState({
     firstName: '',
     lastName: '',
+    phone: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -18,14 +37,14 @@ function Register() {
   const [created, setCreated] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  function closeDialog() {
+    if (onClose) onClose();
+    else navigate('/');
+  }
+
   function updateValue(event) {
     const { name, value } = event.target;
-
-    setValues((current) => ({
-      ...current,
-      [name]: value,
-    }));
-
+    setValues((current) => ({ ...current, [name]: value }));
     setError('');
   }
 
@@ -37,7 +56,12 @@ function Register() {
     setError('');
 
     if (!values.firstName.trim() || !values.lastName.trim()) {
-      setError('Вкажи ім’я та прізвище.');
+      setError('Вкажіть ім’я та прізвище.');
+      return;
+    }
+
+    if (values.password.length < 8) {
+      setError('Пароль повинен містити щонайменше 8 символів.');
       return;
     }
 
@@ -64,48 +88,77 @@ function Register() {
 
       setCreated(true);
     } catch (failure) {
-      setError(
-        apiErrorMessage(failure, 'Не вдалося зареєструватися.')
-      );
+      setError(apiErrorMessage(failure, 'Не вдалося зареєструватися.'));
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <main className="register-page">
-      <section
-        className="register-card"
-        aria-labelledby="register-title"
-      >
+    <div
+      className={isModal ? 'auth-modal-backdrop' : 'auth-modal-backdrop auth-modal-backdrop--page'}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="register-title"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) closeDialog();
+      }}
+    >
+      <section className="register-card">
+        <button
+          type="button"
+          className="register-card__close"
+          aria-label="Закрити"
+          onClick={closeDialog}
+        >
+          ×
+        </button>
+
+        <div className="register-card__brand">
+          <SmartMenuMark />
+          <span className="register-card__wordmark">
+            Smart<span>Menu</span>
+          </span>
+        </div>
+
         {created ? (
           <>
             <span className="register-card__success-icon" aria-hidden="true">
               ✓
             </span>
 
-            <p className="register-card__eyebrow">Приємно познайомитися</p>
-            <h1 id="register-title">Твій акаунт готовий</h1>
+            <p className="sm-eyebrow">Приємно познайомитися</p>
+            <h1 id="register-title" className="sm-serif">Ваш акаунт готовий</h1>
 
             <p className="register-card__intro" role="status">
-              Реєстрація успішна. Тепер увійди зі своїм email і паролем.
+              Реєстрація успішна. Тепер увійдіть зі своїм email і паролем.
             </p>
 
-            <Link
-              className="register-card__submit register-card__login-link"
-              to="/login"
-              state={{ email: values.email.trim() }}
-            >
-              Перейти до входу ↗
-            </Link>
+            {onSwitchToLogin ? (
+              <button
+                type="button"
+                className="register-card__submit"
+                onClick={() => onSwitchToLogin(values.email.trim())}
+              >
+                Перейти до входу →
+              </button>
+            ) : (
+              <Link
+                className="register-card__submit register-card__login-link"
+                to="/login"
+                state={{ email: values.email.trim() }}
+              >
+                Перейти до входу →
+              </Link>
+            )}
           </>
         ) : (
           <>
-            <p className="register-card__eyebrow">Смаки починаються з тебе</p>
-            <h1 id="register-title">Познайомимось?</h1>
+            <p className="sm-eyebrow">Приємно познайомитися</p>
+            <h1 id="register-title" className="sm-serif">Створити акаунт</h1>
 
             <p className="register-card__intro">
-              Створи акаунт SmartMenu — попереду ще багато смачних відкриттів.
+              Один крок до персональних рекомендацій.
             </p>
 
             <form
@@ -123,6 +176,7 @@ function Register() {
                       autoComplete="given-name"
                       required
                       maxLength={100}
+                      placeholder="Як до вас звертатися?"
                       value={values.firstName}
                       onChange={updateValue}
                     />
@@ -136,10 +190,24 @@ function Register() {
                       autoComplete="family-name"
                       required
                       maxLength={100}
+                      placeholder="Ваше прізвище"
                       value={values.lastName}
                       onChange={updateValue}
                     />
                   </div>
+                </div>
+
+                <div className="register-form__field">
+                  <label htmlFor="register-phone">Номер телефону (необов’язково)</label>
+                  <input
+                    id="register-phone"
+                    name="phone"
+                    type="tel"
+                    autoComplete="tel"
+                    placeholder="+380 67 123 45 67"
+                    value={values.phone}
+                    onChange={updateValue}
+                  />
                 </div>
 
                 <div className="register-form__field">
@@ -151,7 +219,7 @@ function Register() {
                     autoComplete="email"
                     required
                     maxLength={320}
-                    placeholder="you@example.com"
+                    placeholder="name@example.com"
                     value={values.email}
                     onChange={updateValue}
                   />
@@ -169,7 +237,7 @@ function Register() {
                       required
                       minLength={8}
                       maxLength={128}
-                      aria-describedby="register-password-hint"
+                      placeholder="Щонайменше 8 символів"
                       value={values.password}
                       onChange={updateValue}
                     />
@@ -177,25 +245,19 @@ function Register() {
                     <button
                       className="register-form__visibility"
                       type="button"
+                      aria-label={showPassword ? 'Сховати пароль' : 'Показати пароль'}
                       aria-controls="register-password register-confirm-password"
                       aria-pressed={showPassword}
                       onClick={() => setShowPassword((current) => !current)}
                     >
-                      {showPassword ? 'Сховати' : 'Показати'}
+                      <EyeIcon visible={showPassword} />
                     </button>
                   </div>
-
-                  <p
-                    className="register-form__hint"
-                    id="register-password-hint"
-                  >
-                    Від 8 до 128 символів.
-                  </p>
                 </div>
 
                 <div className="register-form__field">
                   <label htmlFor="register-confirm-password">
-                    Повтори пароль
+                    Підтвердьте пароль
                   </label>
                   <input
                     id="register-confirm-password"
@@ -205,6 +267,7 @@ function Register() {
                     required
                     minLength={8}
                     maxLength={128}
+                    placeholder="Повторіть пароль"
                     value={values.confirmPassword}
                     onChange={updateValue}
                   />
@@ -223,12 +286,23 @@ function Register() {
             </form>
 
             <p className="register-card__footer">
-              Уже маєш акаунт? <Link to="/login">Увійти</Link>
+              Вже маєте акаунт?{' '}
+              {onSwitchToLogin ? (
+                <button
+                  type="button"
+                  className="register-card__switch-btn"
+                  onClick={() => onSwitchToLogin()}
+                >
+                  Увійти
+                </button>
+              ) : (
+                <Link to="/login">Увійти</Link>
+              )}
             </p>
           </>
         )}
       </section>
-    </main>
+    </div>
   );
 }
 

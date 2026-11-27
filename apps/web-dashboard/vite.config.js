@@ -14,6 +14,10 @@ export default defineConfig({
         target: 'https://smartmenu-back.up.railway.app',
         changeOrigin: true,
       },
+      '/media': {
+        target: 'https://smartmenu-back.up.railway.app',
+        changeOrigin: true,
+      },
     },
   },
 });

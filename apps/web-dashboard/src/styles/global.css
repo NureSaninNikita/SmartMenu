@@ -1,11 +1,182 @@
+html {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell > main {
+  flex: 1 0 auto;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+}
+
+.sm-serif {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+a {
+  color: var(--primary);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-sans);
+}
+
+/* Shared Eyebrow */
+.sm-eyebrow {
+  display: inline-block;
+  margin: 0 0 10px;
+  color: var(--primary);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.9px;
+  text-transform: uppercase;
+}
+
+/* Shared Footer (Figma #12464b) */
+.site-footer {
+  margin-top: auto;
+  background: var(--primary-dark);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.site-footer__inner {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 52px 24px 36px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 36px;
+}
+
+.site-footer__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  margin-bottom: 14px;
+}
+
+.site-footer__wordmark {
+  font-family: var(--font-sans);
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+.site-footer__wordmark span {
+  color: var(--accent);
+}
+
+.site-footer__tagline {
+  max-width: 300px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.site-footer__col h3 {
+  margin: 0 0 14px;
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.site-footer__col ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.site-footer__col a,
+.site-footer__link-btn {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+
+.site-footer__col a:hover,
+.site-footer__link-btn:hover {
+  color: #fff;
+}
+
+.site-footer__bottom {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 18px 24px 28px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 12px;
+}
+
+@media (max-width: 760px) {
+  .site-footer__inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    padding: 40px 16px 28px;
+  }
+
+  .site-footer__bottom {
+    padding: 16px 16px 24px;
+  }
+}
+
+/* Preserved admin / functional page-stub styles */
 .page-stub {
   max-width: 1152px;
   margin: 40px auto;
   padding: 32px;
-  border: 1px dashed #dc7070;
-  border-radius: 20px;
-  background: #fff7f7;
-  color: #202d27;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-card);
 }
 
 .page-stub::before {
@@ -14,8 +185,8 @@
   margin-bottom: 16px;
   padding: 6px 12px;
   border-radius: 8px;
-  background: #fee2e2;
-  color: #a52525;
+  background: var(--danger-bg);
+  color: var(--danger-text);
   font-size: 12px;
   font-weight: 700;
 }
@@ -62,19 +233,20 @@
 
 .page-stub__links a {
   padding: 10px 16px;
-  border: 1px solid #e8baba;
+  border: 1px solid var(--line);
   border-radius: 10px;
-  background: #fff;
-  color: #a52525;
+  background: var(--surface);
+  color: var(--primary);
   text-decoration: none;
+  font-weight: 600;
 }
 
 .page-stub__links a:hover {
-  background: #fee2e2;
+  background: var(--selected);
 }
 
 .page-stub__links a:focus-visible {
-  outline: 2px solid #a52525;
+  outline: 2px solid var(--primary);
   outline-offset: 3px;
 }
 
@@ -97,4 +269,3 @@
   gap: 24px;
   margin: 24px 0;
 }
-

@@ -2,9 +2,9 @@ import axios from 'axios';
 import { clearSession, readSession } from '../services/authSession';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_SMARTMENU_API_URL || (import.meta.env.DEV
+  baseURL: import.meta.env.DEV
     ? '/api'
-    : ''),
+    : (import.meta.env.VITE_SMARTMENU_API_URL || ''),
 });
 
 api.interceptors.request.use((config) => {
