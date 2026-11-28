@@ -7,6 +7,10 @@ const reviewService = {
     );
     return data;
   },
+  async getMyReviews() {
+    const { data } = await api.get('/reviews/mine');
+    return data;
+  },
   async createDishReview(dishId, text) {
     const { data } = await api.post(
       `/dishes/${encodeURIComponent(dishId)}/reviews`, { text }

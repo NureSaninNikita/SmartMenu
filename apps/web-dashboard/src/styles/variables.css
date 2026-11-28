@@ -1,0 +1,54 @@
+:root {
+  /* Core Figma SmartMenu Palette */
+  --primary: #006d77;
+  --primary-hover: #005861;
+  --primary-dark: #12464b;
+  --ink: #12464b;
+  --accent: #f26b4f;
+  --accent-dark: #cf5139;
+  --cream: #fff4e5;
+  --paper: #fff4e5;
+  --surface: #ffffff;
+  --surface-warm: #fff9f0;
+  --selected: #e6f2f1;
+  --sage: #e6f2f1;
+  --muted: #596b6d;
+  --line: #d8e5e3;
+  --line-soft: #e7efed;
+
+  /* Semantic / Status */
+  --success-bg: #e4f4ea;
+  --success-text: #216744;
+  --danger-bg: #fdeceb;
+  --danger-border: #f1c3be;
+  --danger-text: #a52e22;
+  --unavailable-bg: #7a2c22;
+  --unavailable-soft-bg: #fff1cc;
+  --unavailable-soft-text: #68551f;
+  --star-gold: #eaa42a;
+  --star-text: #b27a18;
+  --header-bg: rgba(255, 255, 255, 0.97);
+
+  /* Typography */
+  --font-sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Prata', Georgia, 'Times New Roman', serif;
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-card: 11px;
+  --radius-lg: 12px;
+  --radius-xl: 18px;
+  --radius-featured: 24px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-search: 0 15px 50px rgba(36, 39, 32, 0.1);
+  --shadow-featured: 0 18px 45px rgba(18, 70, 75, 0.11);
+  --shadow-card: 0 4px 16px rgba(18, 70, 75, 0.05);
+  --shadow-card-hover: 0 16px 38px rgba(37, 45, 39, 0.09);
+
+  /* Layout */
+  --container-max: 1220px;
+  --header-height: 76px;
+}

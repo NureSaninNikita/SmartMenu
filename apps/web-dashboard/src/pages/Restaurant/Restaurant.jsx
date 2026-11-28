@@ -1,31 +1,63 @@
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
-import {
-  Link,
-  useParams,
-  useSearchParams,
-} from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import MenuDish from '../../components/MenuDish/MenuDish';
-import restaurantsService from '../../services/restaurantsService';
-import searchService from '../../services/searchService';
-import { apiErrorMessage } from '../../services/apiError';
 import RestaurantReviews from '../../components/Feedback/RestaurantReviews';
+import restaurantsService, {
+  isRestaurantOpenNow,
+  parseOpeningHours,
+} from '../../services/restaurantsService';
+import searchService from '../../services/searchService';
+import {
+  PREFS_CHANGE_EVENT,
+  readPreferences,
+  toggleBlacklistRestaurant,
+  toggleWhitelistRestaurant,
+} from '../../services/preferencesStore';
+import { apiErrorMessage } from '../../services/apiError';
 import './Restaurant.css';
 
-function Restaurant({ session }) {
-  const { restaurantId } = useParams();
+const TABS = [
+  { id: 'menu', label: 'Меню' },
+  { id: 'reviews', label: 'Відгуки' },
+  { id: 'info', label: 'Інформація' },
+];
 
-  return <RestaurantContent key={restaurantId} restaurantId={restaurantId} session={session} />;
+function formatHoursSummary(openingHoursJson) {
+  const schedule = parseOpeningHours(openingHoursJson);
+  if (!schedule) return 'Щодня, 09:00–22:00';
+  const entries = Object.entries(schedule);
+  if (entries.length === 0) return 'Щодня, 09:00–22:00';
+  if (entries.length === 1) {
+    return `${entries[0][0]}: ${entries[0][1]}`;
+  }
+  const uniqueValues = [...new Set(entries.map(([, val]) => String(val)))];
+  if (uniqueValues.length === 1) {
+    return `Щодня, ${uniqueValues[0]}`;
+  }
+  return entries.slice(0, 2).map(([k, v]) => `${k}: ${v}`).join(' · ');
 }
 
-function RestaurantContent({ restaurantId, session }) {
+function Restaurant({ session, onOpenAuth }) {
+  const { restaurantId } = useParams();
+  return (
+    <RestaurantContent
+      key={restaurantId}
+      restaurantId={restaurantId}
+      session={session}
+      onOpenAuth={onOpenAuth}
+    />
+  );
+}
+
+function RestaurantContent({ restaurantId, session, onOpenAuth }) {
   const [searchParams, setSearchParams] = useSearchParams();
 
+  const tabParam = searchParams.get('tab');
+  const activeTab = TABS.some((t) => t.id === tabParam) ? tabParam : 'menu';
   const query = searchParams.get('query') || '';
+  const categoryIdParam = searchParams.get('categoryId') || '';
+  const selectedCategoryId = Number(categoryIdParam) > 0 ? Number(categoryIdParam) : null;
+  const availableOnly = searchParams.get('availableOnly') === 'true';
 
   const ingredientIds = [...new Set(
     searchParams
@@ -33,50 +65,32 @@ function RestaurantContent({ restaurantId, session }) {
       .map(Number)
       .filter((id) => Number.isInteger(id) && id > 0)
   )].sort((a, b) => a - b);
-
   const ingredientKey = ingredientIds.join(',');
 
   const [restaurant, setRestaurant] = useState(null);
-  const [options, setOptions] = useState({
-    categories: [],
-    ingredients: [],
-  });
-
+  const [options, setOptions] = useState({ categories: [], ingredients: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
   const [debouncedQuery, setDebouncedQuery] = useState(() => query.trim());
-
   const [dishes, setDishes] = useState([]);
+  const [heroPhoto, setHeroPhoto] = useState(null);
   const [menuLoading, setMenuLoading] = useState(true);
   const [menuError, setMenuError] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
-  const [activeCategory, setActiveCategory] = useState(null);
+  const [reviewsCount, setReviewsCount] = useState(null);
+  const [prefs, setPrefs] = useState(readPreferences);
 
-  const sectionRefs = useRef(new Map());
-  const categoriesRef = useRef(null);
-  const scrollRestored = useRef(false);
-
-  const scrollStorageKey = `smartmenu:menu-scroll:${JSON.stringify([
-    restaurantId,
-    query.trim(),
-    ingredientKey,
-  ])}`;
-
-  const groups = options.categories
-    .map((category) => ({
-      ...category,
-      dishes: dishes.filter((dish) => dish.categoryId === category.id),
-    }))
-    .filter((category) => category.dishes.length > 0);
-
-  const hasFilters = Boolean(query.trim() || ingredientIds.length);
+  useEffect(() => {
+    const sync = () => setPrefs(readPreferences());
+    window.addEventListener(PREFS_CHANGE_EVENT, sync);
+    return () => window.removeEventListener(PREFS_CHANGE_EVENT, sync);
+  }, []);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       setDebouncedQuery(query.trim());
-    }, 300);
-
+    }, 280);
     return () => window.clearTimeout(timeoutId);
   }, [query]);
 
@@ -85,26 +99,25 @@ function RestaurantContent({ restaurantId, session }) {
     const controller = new AbortController();
 
     async function loadRestaurant() {
+      setIsLoading(true);
+      setError('');
       try {
-        const restaurantData =
-          await restaurantsService.getRestaurantById(restaurantId);
-
-        if (!isActive || !restaurantData) return;
-
-        const filterOptions = await searchService.getFilters(
-          restaurantId,
-          { signal: controller.signal }
-        );
-
+        const restaurantData = await restaurantsService.getRestaurantById(restaurantId);
+        if (!isActive) return;
+        if (!restaurantData) {
+          setRestaurant(null);
+          return;
+        }
+        const filterOptions = await searchService.getFilters(restaurantId, {
+          signal: controller.signal,
+        });
         if (isActive) {
           setRestaurant(restaurantData);
           setOptions(filterOptions);
         }
       } catch (failure) {
-        if (isActive) {
-          setError(
-            apiErrorMessage(failure, 'Не вдалося завантажити заклад.')
-          );
+        if (isActive && failure?.code !== 'ERR_CANCELED') {
+          setError(apiErrorMessage(failure, 'Не вдалося завантажити заклад.'));
         }
       } finally {
         if (isActive) setIsLoading(false);
@@ -112,7 +125,6 @@ function RestaurantContent({ restaurantId, session }) {
     }
 
     loadRestaurant();
-
     return () => {
       isActive = false;
       controller.abort();
@@ -121,38 +133,30 @@ function RestaurantContent({ restaurantId, session }) {
 
   useEffect(() => {
     if (!restaurant) return;
-
     let isActive = true;
     const controller = new AbortController();
 
     async function loadMenu() {
-      await Promise.resolve();
-
-      if (!isActive) return;
-
       setMenuLoading(true);
       setMenuError('');
-
       try {
         const result = await searchService.getMenu(
           restaurantId,
           {
             query: debouncedQuery,
+            categoryId: selectedCategoryId || undefined,
             ingredientIds: ingredientKey
               ? ingredientKey.split(',').map(Number)
               : [],
           },
           { signal: controller.signal }
         );
-
-        if (isActive) {
-          setDishes(result);
-        }
+        if (!isActive) return;
+        setDishes(result);
+        setHeroPhoto((prev) => prev || result.find((d) => d.imageUrl)?.imageUrl || null);
       } catch (failure) {
-        if (isActive) {
-          setMenuError(
-            apiErrorMessage(failure, 'Не вдалося завантажити меню.')
-          );
+        if (isActive && failure?.code !== 'ERR_CANCELED') {
+          setMenuError(apiErrorMessage(failure, 'Не вдалося завантажити меню.'));
         }
       } finally {
         if (isActive) setMenuLoading(false);
@@ -160,7 +164,6 @@ function RestaurantContent({ restaurantId, session }) {
     }
 
     loadMenu();
-
     return () => {
       isActive = false;
       controller.abort();
@@ -169,186 +172,38 @@ function RestaurantContent({ restaurantId, session }) {
     restaurantId,
     restaurant,
     debouncedQuery,
+    selectedCategoryId,
     ingredientKey,
     reloadKey,
   ]);
 
-  useLayoutEffect(() => {
-    if (isLoading || menuLoading || !restaurant || menuError) return;
-    if (scrollRestored.current) return;
+  const visibleDishes = useMemo(() => {
+    if (!availableOnly) return dishes;
+    return dishes.filter((dish) => dish.status === 'Available');
+  }, [dishes, availableOnly]);
 
-    scrollRestored.current = true;
+  // Estimate average check from real menu dishes loaded from DB
+  const estimatedCheck = useMemo(() => {
+    const validPrices = dishes
+      .map((d) => Number(d.price))
+      .filter((p) => Number.isFinite(p) && p > 0);
+    if (validPrices.length === 0) return null;
+    const avg = validPrices.reduce((sum, p) => sum + p, 0) / validPrices.length;
+    return Math.round((avg * 2) / 10) * 10;
+  }, [dishes]);
 
-    try {
-      const savedPosition = sessionStorage.getItem(scrollStorageKey);
+  const hasFilters = Boolean(
+    query.trim() || selectedCategoryId || ingredientIds.length > 0 || availableOnly
+  );
 
-      if (savedPosition !== null) {
-        const top = Number(savedPosition);
-
-        if (Number.isFinite(top) && top >= 0) {
-          window.scrollTo({
-            top,
-            left: 0,
-            behavior: 'instant',
-          });
-        }
-      }
-    } catch {
-      // Відсутність доступу до сховища не блокує меню.
-    }
-  }, [
-    isLoading,
-    menuLoading,
-    restaurant,
-    menuError,
-    scrollStorageKey,
-  ]);
-
-  useEffect(() => {
-    function savePosition() {
-      if (!scrollRestored.current || menuLoading) return;
-      if (query.trim() !== debouncedQuery) return;
-
-      try {
-        sessionStorage.setItem(
-          scrollStorageKey,
-          String(window.scrollY)
-        );
-      } catch {
-        // Збереження позиції не повинно заважати навігації.
-      }
-    }
-
-    window.addEventListener('scroll', savePosition, { passive: true });
-    window.addEventListener('pagehide', savePosition);
-
-    // Зберігаємо також перед переходом за посиланням.
-    document.addEventListener('click', savePosition, true);
-
-    return () => {
-      window.removeEventListener('scroll', savePosition);
-      window.removeEventListener('pagehide', savePosition);
-      document.removeEventListener('click', savePosition, true);
-    };
-  }, [
-    scrollStorageKey,
-    menuLoading,
-    query,
-    debouncedQuery,
-  ]);
-
-  useEffect(() => {
-    if (menuLoading || menuError) return;
-
-    let frameId;
-
-    function updateActiveCategory() {
-      const sections = [...sectionRefs.current.entries()]
-        .filter(([, element]) => element)
-        .sort(
-          (a, b) =>
-            a[1].getBoundingClientRect().top -
-            b[1].getBoundingClientRect().top
-        );
-
-      if (!sections.length) {
-        setActiveCategory(null);
-        return;
-      }
-
-      const page = document.querySelector('.restaurant-menu-page');
-      const stickyTop = page
-        ? Number.parseFloat(
-          window.getComputedStyle(page).getPropertyValue('--menu-sticky-top')
-        )
-        : 90;
-
-      const offset = (Number.isFinite(stickyTop) ? stickyTop : 90) + 24;
-      let currentId = sections[0][0];
-
-      for (const [id, element] of sections) {
-        if (element.getBoundingClientRect().top <= offset) {
-          currentId = id;
-        }
-      }
-
-      const atBottom =
-        window.scrollY + window.innerHeight >=
-        document.documentElement.scrollHeight - 4;
-
-      if (atBottom) {
-        currentId = sections[sections.length - 1][0];
-      }
-
-      setActiveCategory(currentId);
-    }
-
-    function scheduleUpdate() {
-      window.cancelAnimationFrame(frameId);
-      frameId = window.requestAnimationFrame(updateActiveCategory);
-    }
-
-    scheduleUpdate();
-
-    window.addEventListener('scroll', scheduleUpdate, { passive: true });
-    window.addEventListener('resize', scheduleUpdate);
-
-    return () => {
-      window.cancelAnimationFrame(frameId);
-      window.removeEventListener('scroll', scheduleUpdate);
-      window.removeEventListener('resize', scheduleUpdate);
-    };
-  }, [dishes, menuLoading, menuError]);
-
-  useEffect(() => {
-    const navigation = categoriesRef.current;
-    const activeLink = navigation?.querySelector(
-      '[aria-current="location"]'
-    );
-
-    if (!activeLink) return;
-
-    const sidebar = navigation.closest('.restaurant-menu__sidebar');
-    const list = navigation.querySelector('ul');
-
-    if (!sidebar || !list) return;
-
-    const isMobile = window.innerWidth <= 760;
-    const container = isMobile ? list : sidebar;
-
-    const containerRect = container.getBoundingClientRect();
-    const linkRect = activeLink.getBoundingClientRect();
-    const padding = 12;
-
-    if (isMobile) {
-      if (linkRect.left < containerRect.left + padding) {
-        container.scrollLeft +=
-          linkRect.left - containerRect.left - padding;
-      } else if (linkRect.right > containerRect.right - padding) {
-        container.scrollLeft +=
-          linkRect.right - containerRect.right + padding;
-      }
-    } else {
-      if (linkRect.top < containerRect.top + padding) {
-        container.scrollTop +=
-          linkRect.top - containerRect.top - padding;
-      } else if (linkRect.bottom > containerRect.bottom - padding) {
-        container.scrollTop +=
-          linkRect.bottom - containerRect.bottom + padding;
-      }
-    }
-  }, [activeCategory, menuLoading]);
-
-  function updateQuery(value) {
+  function setParam(key, value) {
     setSearchParams((current) => {
       const next = new URLSearchParams(current);
-
       if (value) {
-        next.set('query', value);
+        next.set(key, String(value));
       } else {
-        next.delete('query');
+        next.delete(key);
       }
-
       return next;
     }, { replace: true });
   }
@@ -356,303 +211,433 @@ function RestaurantContent({ restaurantId, session }) {
   function toggleIngredient(id) {
     setSearchParams((current) => {
       const next = new URLSearchParams(current);
-
       const selected = new Set(
         current
           .getAll('ingredientIds')
           .map(Number)
           .filter((value) => Number.isInteger(value) && value > 0)
       );
-
-      if (selected.has(id)) {
-        selected.delete(id);
-      } else {
-        selected.add(id);
-      }
-
+      if (selected.has(id)) selected.delete(id);
+      else selected.add(id);
       next.delete('ingredientIds');
-
       for (const ingredientId of [...selected].sort((a, b) => a - b)) {
         next.append('ingredientIds', String(ingredientId));
       }
-
-      return next;
-    }, { replace: true });
-  }
-
-  function clearIngredients() {
-    setSearchParams((current) => {
-      const next = new URLSearchParams(current);
-      next.delete('ingredientIds');
       return next;
     }, { replace: true });
   }
 
   function clearFilters() {
     setDebouncedQuery('');
-
     setSearchParams((current) => {
       const next = new URLSearchParams(current);
       next.delete('query');
+      next.delete('categoryId');
       next.delete('ingredientIds');
+      next.delete('availableOnly');
       return next;
     }, { replace: true });
   }
 
-  function goToCategory(event, categoryId) {
-    event.preventDefault();
-
-    const section = sectionRefs.current.get(categoryId);
-
-    if (!section) return;
-
-    const reducedMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)'
-    ).matches;
-
-    section.scrollIntoView({
-      behavior: reducedMotion ? 'auto' : 'smooth',
-      block: 'start',
-    });
-
-    setActiveCategory(categoryId);
-  }
-
   if (isLoading) {
     return (
-      <main className="restaurant-menu-page">
-        <p className="restaurant-menu__message" role="status">
+      <main className="restaurant-page">
+        <div className="restaurant-page__state" role="status">
           Завантажуємо заклад…
-        </p>
+        </div>
       </main>
     );
   }
 
   if (error || !restaurant) {
     return (
-      <main className="restaurant-menu-page">
-        <div className="restaurant-menu__message">
-          {error ? (
-            <p role="alert">{error}</p>
-          ) : (
-            <h1>Заклад не знайдено</h1>
-          )}
-
-          <Link to="/restaurants">До списку закладів</Link>
+      <main className="restaurant-page">
+        <div className="restaurant-page__state restaurant-page__state--error">
+          {error ? <p role="alert">{error}</p> : <h1>Заклад не знайдено</h1>}
+          <Link to="/restaurants" className="restaurant-page__back-link">
+            ← До списку закладів
+          </Link>
         </div>
       </main>
     );
   }
 
+  const bannerImage = restaurant.logoUrl || heroPhoto;
+  const openNow = isRestaurantOpenNow(restaurant.openingHoursJson);
+  const hoursSummary = formatHoursSummary(restaurant.openingHoursJson);
+  const scheduleObject = parseOpeningHours(restaurant.openingHoursJson);
+  const isWhitelisted = prefs.whitelistRestaurants.some(
+    (r) => Number(r.id) === Number(restaurant.id)
+  );
+  const isBlacklisted = prefs.blacklistRestaurants.some(
+    (r) => Number(r.id) === Number(restaurant.id)
+  );
+
   return (
-    <main className="restaurant-menu-page">
-      <aside className="restaurant-menu__sidebar">
-        <header className="restaurant-menu__restaurant">
-          <Link className="restaurant-menu__back" to="/restaurants">
-            ← Усі заклади
-          </Link>
+    <main className="restaurant-page">
+      <div className="restaurant-page__topbar">
+        <Link className="restaurant-page__back" to="/restaurants">
+          ← До ресторанів
+        </Link>
+      </div>
 
-          <p className="restaurant-menu__eyebrow">Меню закладу</p>
-          <h1>{restaurant.name}</h1>
-
-          {restaurant.description?.trim() && (
-            <p className="restaurant-menu__description">
-              {restaurant.description}
-            </p>
-          )}
-
-          <div className="restaurant-menu__contacts">
-            {restaurant.city && (
-              <Link
-                to={{
-                  pathname: '/restaurants',
-                  search: `?${new URLSearchParams({
-                    city: restaurant.city,
-                  })}`,
-                }}
-              >
-                {restaurant.city}
-              </Link>
+      <section
+        className={`restaurant-hero${bannerImage ? ' restaurant-hero--has-image' : ''}`}
+        style={bannerImage ? { backgroundImage: `url(${bannerImage})` } : undefined}
+      >
+        <div className="restaurant-hero__overlay">
+          <div className="restaurant-hero__inner">
+            <span className="restaurant-hero__eyebrow">
+              {restaurant.city || 'Авторська кухня'}
+            </span>
+            <h1>{restaurant.name}</h1>
+            {restaurant.description?.trim() && (
+              <p className="restaurant-hero__description">
+                {restaurant.description}
+              </p>
             )}
 
-            {restaurant.address && <p>{restaurant.address}</p>}
-
-            {restaurant.phoneNumber && (
-              <a href={`tel:${restaurant.phoneNumber}`}>
-                {restaurant.phoneNumber}
-              </a>
-            )}
-
-            {restaurant.email && (
-              <a href={`mailto:${restaurant.email}`}>
-                {restaurant.email}
-              </a>
-            )}
-          </div>
-        </header>
-
-        {groups.length > 0 && !menuLoading && !menuError && (
-          <nav
-            ref={categoriesRef}
-            className="restaurant-menu__categories"
-            aria-label="Категорії меню"
-          >
-            <h2>Категорії</h2>
-
-            <ul>
-              {groups.map((category) => (
-                <li key={category.id}>
-                  <a
-                    href={`#menu-category-${category.id}`}
-                    className={
-                      activeCategory === category.id
-                        ? 'restaurant-menu__category restaurant-menu__category--active'
-                        : 'restaurant-menu__category'
-                    }
-                    aria-current={
-                      activeCategory === category.id
-                        ? 'location'
-                        : undefined
-                    }
-                    onClick={(event) => goToCategory(event, category.id)}
-                  >
-                    <span>{category.name}</span>
-                    <span>{category.dishes.length}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        )}
-      </aside>
-
-      <div className="restaurant-menu__main">
-        <div className="restaurant-menu__toolbar">
-          <div className="restaurant-menu__search">
-            <label htmlFor="menu-search">
-              Що хочеться спробувати?
-            </label>
-
-            <input
-              id="menu-search"
-              type="search"
-              maxLength={200}
-              placeholder="Назва страви"
-              value={query}
-              onChange={(event) => updateQuery(event.target.value)}
-            />
-          </div>
-
-          {options.ingredients.length > 0 && (
-            <details className="restaurant-menu__ingredients">
-              <summary>
-                Інгредієнти
-                {ingredientIds.length > 0 && (
-                  <span>{ingredientIds.length}</span>
-                )}
-              </summary>
-
-              <div className="restaurant-menu__ingredient-panel">
-                <p>Страва має містити всі вибрані інгредієнти.</p>
-
-                <div className="restaurant-menu__ingredient-list">
-                  {options.ingredients.map((ingredient) => (
-                    <label key={ingredient.id}>
-                      <input
-                        type="checkbox"
-                        checked={ingredientIds.includes(ingredient.id)}
-                        onChange={() => toggleIngredient(ingredient.id)}
-                      />
-                      <span>{ingredient.name}</span>
-                    </label>
-                  ))}
-                </div>
-
-                {ingredientIds.length > 0 && (
-                  <button type="button" onClick={clearIngredients}>
-                    Очистити інгредієнти
-                  </button>
-                )}
-              </div>
-            </details>
-          )}
-        </div>
-
-        <div className="restaurant-menu__results-heading">
-          <h2>Меню</h2>
-
-          {hasFilters && (
-            <button type="button" onClick={clearFilters}>
-              Скинути фільтри ×
-            </button>
-          )}
-
-          {!menuLoading && !menuError && (
-            <span role="status">Страв: {dishes.length}</span>
-          )}
-        </div>
-
-        <div aria-busy={menuLoading}>
-          {menuLoading ? (
-            <p className="restaurant-menu__message" role="status">
-              Оновлюємо меню…
-            </p>
-          ) : menuError ? (
-            <div className="restaurant-menu__message" role="alert">
-              <p>{menuError}</p>
-
-              <button
-                type="button"
-                onClick={() => setReloadKey((current) => current + 1)}
-              >
-                Спробувати ще раз
-              </button>
+            <div className="restaurant-hero__meta">
+              {restaurant.city && <span>◎ {restaurant.city}</span>}
+              <span>{openNow === false ? 'Зачинено' : 'Відкрито'}</span>
             </div>
-          ) : groups.length > 0 ? (
-            groups.map((category) => (
-              <section
-                className="restaurant-menu__section"
-                id={`menu-category-${category.id}`}
-                key={category.id}
-                aria-labelledby={`menu-category-title-${category.id}`}
-                ref={(element) => {
-                  if (element) {
-                    sectionRefs.current.set(category.id, element);
-                  } else {
-                    sectionRefs.current.delete(category.id);
-                  }
-                }}
-              >
-                <h2 id={`menu-category-title-${category.id}`}>
-                  {category.name}
-                </h2>
+          </div>
+        </div>
+      </section>
 
-                <ul>
-                  {category.dishes.map((dish) => (
+      <div className="restaurant-page__container">
+        <section className="restaurant-summary" aria-label="Основна інформація">
+          <div className="restaurant-summary__grid">
+            <div className="restaurant-summary__item">
+              <span>Години роботи</span>
+              <strong>{hoursSummary}</strong>
+            </div>
+
+            {estimatedCheck != null && (
+              <div className="restaurant-summary__item">
+                <span>Середній чек</span>
+                <strong>≈ {estimatedCheck} ₴ / особу</strong>
+              </div>
+            )}
+
+            {restaurant.address && (
+              <div className="restaurant-summary__item">
+                <span>Адреса</span>
+                <strong>
+                  {restaurant.city ? `${restaurant.city}, ` : ''}
+                  {restaurant.address}
+                </strong>
+              </div>
+            )}
+          </div>
+
+          <div className="restaurant-summary__actions">
+            <button
+              type="button"
+              className={
+                isWhitelisted
+                  ? 'restaurant-pref-btn restaurant-pref-btn--active'
+                  : 'restaurant-pref-btn'
+              }
+              onClick={() => setPrefs(toggleWhitelistRestaurant(restaurant))}
+            >
+              {isWhitelisted ? '♥ У білому списку' : '♡ До білого списку'}
+            </button>
+
+            <button
+              type="button"
+              className={
+                isBlacklisted
+                  ? 'restaurant-pref-btn restaurant-pref-btn--danger restaurant-pref-btn--danger-active'
+                  : 'restaurant-pref-btn restaurant-pref-btn--danger'
+              }
+              onClick={() => setPrefs(toggleBlacklistRestaurant(restaurant))}
+            >
+              {isBlacklisted ? 'Приховано' : 'Не показувати'}
+            </button>
+          </div>
+        </section>
+
+        <nav className="restaurant-tabs" role="tablist" aria-label="Розділи закладу">
+          {TABS.map((tab) => {
+            const isSelected = activeTab === tab.id;
+            const suffix =
+              tab.id === 'reviews' && reviewsCount !== null && reviewsCount > 0
+                ? ` (${reviewsCount})`
+                : '';
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={isSelected}
+                className={
+                  isSelected
+                    ? 'restaurant-tabs__btn restaurant-tabs__btn--active'
+                    : 'restaurant-tabs__btn'
+                }
+                onClick={() => setParam('tab', tab.id === 'menu' ? '' : tab.id)}
+              >
+                {tab.label}{suffix}
+              </button>
+            );
+          })}
+        </nav>
+
+        {activeTab === 'menu' && (
+          <section className="restaurant-section" aria-label="Меню ресторану">
+            <div className="restaurant-section__head">
+              <div>
+                <span className="sm-eyebrow">Меню ресторану</span>
+                <h2>
+                  {menuLoading
+                    ? `Меню ${restaurant.name}`
+                    : `${visibleDishes.length} страв від ${restaurant.name}`}
+                </h2>
+              </div>
+
+              {hasFilters && (
+                <button
+                  type="button"
+                  className="restaurant-filter-reset"
+                  onClick={clearFilters}
+                >
+                  Скинути фільтри ×
+                </button>
+              )}
+            </div>
+
+            <div className="restaurant-menu-controls">
+              <div className="restaurant-menu-search">
+                <span aria-hidden="true">⌕</span>
+                <input
+                  id="menu-search"
+                  type="search"
+                  maxLength={200}
+                  aria-label="Пошук у меню цього ресторану"
+                  placeholder="Пошук у меню цього ресторану"
+                  value={query}
+                  onChange={(event) => setParam('query', event.target.value)}
+                />
+              </div>
+
+              {options.ingredients.length > 0 && (
+                <details className="restaurant-ingredients">
+                  <summary>
+                    Інгредієнти
+                    {ingredientIds.length > 0 && (
+                      <span className="restaurant-ingredients__badge">
+                        {ingredientIds.length}
+                      </span>
+                    )}
+                  </summary>
+
+                  <div className="restaurant-ingredients__panel">
+                    <p>Страва має містити всі вибрані інгредієнти.</p>
+                    <div className="restaurant-ingredients__list">
+                      {options.ingredients.map((ingredient) => (
+                        <label key={ingredient.id}>
+                          <input
+                            type="checkbox"
+                            checked={ingredientIds.includes(ingredient.id)}
+                            onChange={() => toggleIngredient(ingredient.id)}
+                          />
+                          <span>{ingredient.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                    {ingredientIds.length > 0 && (
+                      <button
+                        type="button"
+                        className="restaurant-ingredients__clear"
+                        onClick={() => {
+                          setSearchParams((current) => {
+                            const next = new URLSearchParams(current);
+                            next.delete('ingredientIds');
+                            return next;
+                          }, { replace: true });
+                        }}
+                      >
+                        Очистити інгредієнти
+                      </button>
+                    )}
+                  </div>
+                </details>
+              )}
+
+              <label className="restaurant-available-pill">
+                <input
+                  type="checkbox"
+                  checked={availableOnly}
+                  onChange={(event) =>
+                    setParam('availableOnly', event.target.checked ? 'true' : '')
+                  }
+                />
+                <span>Доступні зараз</span>
+              </label>
+            </div>
+
+            {options.categories.length > 0 && (
+              <div className="restaurant-category-pills" role="group" aria-label="Категорії меню">
+                <button
+                  type="button"
+                  className={
+                    selectedCategoryId === null
+                      ? 'restaurant-pill restaurant-pill--active'
+                      : 'restaurant-pill'
+                  }
+                  onClick={() => setParam('categoryId', '')}
+                >
+                  Усі
+                </button>
+                {options.categories.map((category) => (
+                  <button
+                    key={category.id}
+                    type="button"
+                    className={
+                      selectedCategoryId === category.id
+                        ? 'restaurant-pill restaurant-pill--active'
+                        : 'restaurant-pill'
+                    }
+                    onClick={() =>
+                      setParam(
+                        'categoryId',
+                        selectedCategoryId === category.id ? '' : category.id
+                      )
+                    }
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div aria-busy={menuLoading}>
+              {menuLoading ? (
+                <div className="restaurant-page__state" role="status">
+                  Оновлюємо меню…
+                </div>
+              ) : menuError ? (
+                <div className="restaurant-page__state restaurant-page__state--error" role="alert">
+                  <p>{menuError}</p>
+                  <button
+                    type="button"
+                    className="restaurant-page__retry"
+                    onClick={() => setReloadKey((current) => current + 1)}
+                  >
+                    Спробувати ще раз
+                  </button>
+                </div>
+              ) : visibleDishes.length > 0 ? (
+                <ul className="restaurant-dishes-grid">
+                  {visibleDishes.map((dish) => (
                     <li key={dish.id}>
                       <MenuDish dish={dish} />
                     </li>
                   ))}
                 </ul>
-              </section>
-            ))
-          ) : (
-            <div className="restaurant-menu__message" role="status">
-              <h3>
-                {hasFilters
-                  ? 'За цими умовами страв немає'
-                  : 'Меню ще наповнюється'}
-              </h3>
-
-              <p>
-                {hasFilters
-                  ? 'Спробуй іншу назву або прибери частину інгредієнтів.'
-                  : 'Страви з’являться тут після додавання закладом.'}
-              </p>
+              ) : (
+                <div className="restaurant-page__state" role="status">
+                  <h3 className="sm-serif">
+                    {hasFilters
+                      ? 'За цими умовами страв немає'
+                      : 'Меню ще наповнюється'}
+                  </h3>
+                  <p>
+                    {hasFilters
+                      ? 'Спробуйте іншу назву, категорію або скиньте частину фільтрів.'
+                      : 'Страви з’являться тут після додавання адміністратором закладу.'}
+                  </p>
+                  {hasFilters && (
+                    <button
+                      type="button"
+                      className="restaurant-page__retry"
+                      onClick={clearFilters}
+                    >
+                      Скинути фільтри
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-        <RestaurantReviews restaurantId={restaurantId} session={session} />
+          </section>
+        )}
+
+        {activeTab === 'reviews' && (
+          <section className="restaurant-section">
+            <RestaurantReviews
+              restaurantId={restaurantId}
+              session={session}
+              onCountChange={setReviewsCount}
+              onOpenAuth={onOpenAuth}
+            />
+          </section>
+        )}
+
+        {activeTab === 'info' && (
+          <section className="restaurant-section" aria-label="Детальна інформація про заклад">
+            <div className="restaurant-section__head">
+              <div>
+                <span className="sm-eyebrow">Про заклад</span>
+                <h2>Інформація</h2>
+              </div>
+            </div>
+
+            <div className="restaurant-info-grid">
+              <div className="restaurant-info-card">
+                <span className="restaurant-info-card__label">Адреса</span>
+                <p>
+                  {restaurant.city ? `${restaurant.city}, ` : ''}
+                  {restaurant.address || 'Не вказано'}
+                </p>
+              </div>
+
+              <div className="restaurant-info-card">
+                <span className="restaurant-info-card__label">Години роботи</span>
+                {scheduleObject ? (
+                  <dl className="restaurant-schedule-list">
+                    {Object.entries(scheduleObject).map(([day, hours]) => (
+                      <div key={day}>
+                        <dt>{day}</dt>
+                        <dd>{String(hours)}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : (
+                  <p>{hoursSummary}</p>
+                )}
+              </div>
+
+              <div className="restaurant-info-card">
+                <span className="restaurant-info-card__label">Телефон</span>
+                {restaurant.phoneNumber ? (
+                  <p>
+                    <a href={`tel:${restaurant.phoneNumber}`}>{restaurant.phoneNumber}</a>
+                  </p>
+                ) : (
+                  <p>Не вказано</p>
+                )}
+              </div>
+
+              <div className="restaurant-info-card">
+                <span className="restaurant-info-card__label">Кухня</span>
+                <p>{restaurant.cuisine || 'Авторська кухня'}</p>
+              </div>
+
+              <div className="restaurant-info-card">
+                <span className="restaurant-info-card__label">Приблизно на одну особу</span>
+                <p>{estimatedCheck != null ? `≈ ${estimatedCheck} ₴` : 'Не вказано'}</p>
+              </div>
+
+              <div className="restaurant-info-card">
+                <span className="restaurant-info-card__label">Статус</span>
+                <p>
+                  {openNow === false ? 'Зараз зачинено' : 'Відкрито зараз'}
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
       </div>
     </main>
   );
